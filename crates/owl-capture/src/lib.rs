@@ -9,12 +9,14 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpanCaptureMethod {
     Accessibility,
     Clipboard,
     Ocr,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContextCaptureMethod {
     Accessibility,
     Ocr

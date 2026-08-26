@@ -1,0 +1,7 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "b34eb0928f14a393e34a82b0f0be1dc0be968dc2306c194b507bed9c2ccbd9f9"
+build_start_time: [1787695022, 144933000]
+build_end_time: [1787695045, 544175000]
+inputs:
+  ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/IOSurfaceBridge/IOSurface.swift"
+  : [1153704088, 0]

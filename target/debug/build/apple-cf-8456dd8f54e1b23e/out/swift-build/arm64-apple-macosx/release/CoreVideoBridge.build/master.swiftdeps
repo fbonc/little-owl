@@ -1,0 +1,9 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "24afb848e22a7399bd76d303f609af739210cd44989030c75c59a5385b1f86e8"
+build_start_time: [1787695022, 139989000]
+build_end_time: [1787695046, 466149000]
+inputs:
+  ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift"
+  : [1153704088, 0]
+  ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift"
+  : [1153704088, 0]

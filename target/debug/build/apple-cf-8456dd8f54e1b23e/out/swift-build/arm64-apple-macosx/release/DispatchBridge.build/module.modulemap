@@ -1,0 +1,4 @@
+module DispatchBridge {
+    header "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchBridge-Swift.h"
+    requires objc
+}

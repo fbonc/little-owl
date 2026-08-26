@@ -1,0 +1,1179 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.AppleCFBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/AppleCFBridge/AppleCFBridge.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreGraphicsBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/IOSurfaceBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/DispatchBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreMediaBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreVideoBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreFoundationBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "AppleCFBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/AppleCFBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/AppleCFBridge.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/AppleCFBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/AppleCFBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/AppleCFBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/AppleCFBridge/AppleCFBridge.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.CoreFoundationBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Base.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Collections.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Primitives.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Resources.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Runtime.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreFoundationBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreFoundationBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Base.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Collections.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Primitives.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Resources.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Runtime.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/CoreFoundationBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Base.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Collections.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Primitives.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Resources.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Runtime.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreFoundationBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Base.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Collections.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Primitives.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Resources.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Runtime.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.CoreGraphicsBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreGraphicsBridge/CoreGraphics.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreGraphicsBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreGraphicsBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/CoreGraphics.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/CoreGraphicsBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/CoreGraphics.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreGraphicsBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreGraphicsBridge/CoreGraphics.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.CoreMediaBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreMediaBridge/CoreMedia.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreMediaBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreMediaBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMedia.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMediaBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMedia.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreMediaBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreMediaBridge/CoreMedia.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.CoreVideoBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreVideoBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreVideoBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/CoreVideoBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.DispatchBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/Dispatch.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/DispatchExtras.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DispatchBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/DispatchBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/Dispatch.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchExtras.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/Dispatch.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchExtras.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/DispatchBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/Dispatch.swift",
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/DispatchExtras.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.IOSurfaceBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/IOSurfaceBridge/IOSurface.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "IOSurfaceBridge",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/IOSurfaceBridge.swiftmodule",
+      "objects" : [
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurface.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-O",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-module-cache-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurfaceBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bridge"
+      ],
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurface.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules/IOSurfaceBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/IOSurfaceBridge/IOSurface.swift"
+      ],
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build",
+      "wholeModuleOptimization" : true
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "AppleCFBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "AppleCFBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/AppleCFBridge/AppleCFBridge.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/AppleCFBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "CoreFoundationBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "CoreFoundationBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Base.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Collections.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Primitives.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Resources.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Runtime.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/CoreFoundationBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "CoreGraphicsBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "CoreGraphicsBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreGraphicsBridge/CoreGraphics.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/CoreGraphicsBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "CoreMediaBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "CoreMediaBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreMediaBridge/CoreMedia.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMediaBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "CoreVideoBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "CoreVideoBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "DispatchBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "DispatchBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/Dispatch.swift",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/DispatchExtras.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "IOSurfaceBridge" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "IOSurfaceBridge",
+      "-package-name",
+      "swift_bridge",
+      "-whole-module-optimization",
+      "-num-threads",
+      "14",
+      "-c",
+      "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/IOSurfaceBridge/IOSurface.swift",
+      "-I",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-O",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-module-cache-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurfaceBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bridge",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "AppleCFBridge" : [
+      "CoreFoundationBridge",
+      "CoreVideoBridge",
+      "CoreMediaBridge",
+      "DispatchBridge",
+      "IOSurfaceBridge",
+      "CoreGraphicsBridge"
+    ],
+    "CoreFoundationBridge" : [
+
+    ],
+    "CoreGraphicsBridge" : [
+
+    ],
+    "CoreMediaBridge" : [
+
+    ],
+    "CoreVideoBridge" : [
+
+    ],
+    "DispatchBridge" : [
+
+    ],
+    "IOSurfaceBridge" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "enableAllTraits" : false
+  },
+  "writeCommands" : {
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/AppleCFBridge/AppleCFBridge.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.build/AppleCFBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Base.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Collections.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Primitives.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Resources.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/Runtime.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/CoreGraphics.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMedia.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/Dispatch.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/DispatchExtras.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurface.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/AppleCFBridge.product/Objects.LinkFileList"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Base.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Collections.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Primitives.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Resources.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Runtime.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreFoundationBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreGraphicsBridge/CoreGraphics.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreGraphicsBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreMediaBridge/CoreMedia.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/Dispatch.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/DispatchBridge/DispatchExtras.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/DispatchBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/IOSurfaceBridge/IOSurface.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/sources"
+    },
+    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}
