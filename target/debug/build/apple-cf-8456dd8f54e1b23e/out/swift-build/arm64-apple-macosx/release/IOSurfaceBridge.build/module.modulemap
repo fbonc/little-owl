@@ -1,4 +1,0 @@
-module IOSurfaceBridge {
-    header "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/IOSurfaceBridge.build/IOSurfaceBridge-Swift.h"
-    requires objc
-}

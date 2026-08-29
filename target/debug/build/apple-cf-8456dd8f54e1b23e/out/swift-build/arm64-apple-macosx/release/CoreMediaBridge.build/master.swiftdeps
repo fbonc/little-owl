@@ -1,7 +1,0 @@
-version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
-options: "c29885b3803f4b9d1c42cab116b07c7254b9a5d30123668d9fe326d00614ba4c"
-build_start_time: [1788044530, 422554000]
-build_end_time: [1788044553, 943430000]
-inputs:
-  ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreMediaBridge/CoreMedia.swift"
-  : [1153704088, 0]

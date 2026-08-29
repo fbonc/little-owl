@@ -22,8 +22,10 @@ impl MacosCapturer {
     }
 
     fn ax_value_text(&self) -> Option<String> {
-        // TODO(axuielement): kAXFocusedUIElement -> kAXValue
-        todo!("read kAXValue via axuielement")
+        let focused = ax::system_wide()?.focused_ui_element().ok()??;
+        focused
+            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
+            .ok()?
     }
 
     fn ocr_window_context(&self) -> Option<String> {
