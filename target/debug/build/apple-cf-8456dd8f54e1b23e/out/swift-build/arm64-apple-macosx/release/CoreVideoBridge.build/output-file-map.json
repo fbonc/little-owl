@@ -1,17 +1,17 @@
 {
   "": {
-    "dependencies": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge.d",
-    "object": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge.o",
-    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/master.swiftdeps"
+    "dependencies": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge.d",
+    "object": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoBridge.o",
+    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/master.swiftdeps"
   },
   "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideo.swift": {
-    "object": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swift.o",
-    "swiftmodule": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo~partial.swiftmodule",
-    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swiftdeps"
+    "object": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swift.o",
+    "swiftmodule": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo~partial.swiftmodule",
+    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideo.swiftdeps"
   },
   "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreVideoBridge/CoreVideoExtras.swift": {
-    "object": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swift.o",
-    "swiftmodule": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras~partial.swiftmodule",
-    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swiftdeps"
+    "object": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swift.o",
+    "swiftmodule": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras~partial.swiftmodule",
+    "swift-dependencies": "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreVideoBridge.build/CoreVideoExtras.swiftdeps"
   }
 }

@@ -1,5 +1,3 @@
-use std::task::Context;
-
 use thiserror::Error;
 
 #[cfg(target_os = "linux")]
@@ -10,21 +8,50 @@ mod macos;
 mod windows;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SpanCaptureMethod {
+pub enum TextCaptureMethod {
     Accessibility,
     Clipboard,
-    Ocr,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContextCaptureMethod {
     Accessibility,
-    Ocr
+    Ocr,
 }
 
 pub struct CaptureMethod<T> {
     pub method: T,
-    pub implementation: Option<String>
+    pub implementation: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScreenRect {
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+    pub display: u32,
+}
+
+pub struct TextCapture {
+    pub text: String,
+    pub method: CaptureMethod<TextCaptureMethod>,
+}
+
+pub struct OcrCapture {
+    pub text: String,
+    pub region: ScreenRect,
+    pub implementation: Option<String>,
+}
+
+pub enum Target {
+    Text(TextCapture),
+    Ocr(OcrCapture),
+}
+
+pub struct ContextCapture {
+    pub text: String,
+    pub method: CaptureMethod<ContextCaptureMethod>,
 }
 
 pub struct Provenance {
@@ -35,23 +62,21 @@ pub struct Provenance {
 }
 
 pub struct Capture {
-    pub span: Option<String>,
-    pub context: Option<String>,
+    pub target: Option<Target>,
+    pub context: Option<ContextCapture>,
     pub provenance: Option<Provenance>,
     pub elapsed_ms: u32,
-    pub span_method: CaptureMethod<SpanCaptureMethod>,
-    pub context_method: CaptureMethod<ContextCaptureMethod>
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Permission {
     Accessibility,
-    ScreenRecording
+    ScreenRecording,
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("no capture method produced a span")]
+    #[error("no capture method produced text")]
     AllMethodsFailed,
 
     #[error("{permission:?} permission not granted")]
@@ -64,11 +89,11 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub trait Capturer: Send + Sync {
-    fn capture(&self) -> Result<Capture>;
+    fn capture_text(&self, prefer: &[TextCaptureMethod]) -> Result<TextCapture>;
 
-    fn capture_span(&self, prefer: &[SpanCaptureMethod]) -> Result<(String, CaptureMethod<SpanCaptureMethod>)>;
+    fn capture_context(&self, prefer: &[ContextCaptureMethod]) -> Result<ContextCapture>;
 
-    fn capture_context(&self, prefer: &[ContextCaptureMethod]) -> Result<(String, CaptureMethod<ContextCaptureMethod>)>;
+    fn capture_region(&self, region: ScreenRect) -> Result<OcrCapture>;
 
     fn capture_provenance(&self) -> Result<Provenance>;
 }

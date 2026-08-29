@@ -9,7 +9,7 @@ cargo:rustc-link-lib=framework=CoreMedia
 cargo:rustc-link-lib=framework=CoreVideo
 cargo:rustc-link-lib=framework=Metal
 cargo:rerun-if-changed=swift-bridge
-cargo:rustc-link-search=native=/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/release
+cargo:rustc-link-search=native=/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/release
 cargo:rustc-link-lib=static=AppleCFBridge
 cargo:rustc-link-lib=framework=Foundation
 cargo:rustc-link-arg=-Wl,-rpath,/usr/lib/swift

@@ -1,4 +1,4 @@
 module CoreMediaBridge {
-    header "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMediaBridge-Swift.h"
+    header "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/apple-cf-8456dd8f54e1b23e/out/swift-build/arm64-apple-macosx/release/CoreMediaBridge.build/CoreMediaBridge-Swift.h"
     requires objc
 }

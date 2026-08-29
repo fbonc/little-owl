@@ -3,7 +3,7 @@ cargo:rerun-if-changed=swift-bridge
 cargo:rerun-if-env-changed=DOCS_RS
 cargo:rerun-if-env-changed=DEVELOPER_DIR
 cargo:rerun-if-env-changed=SDKROOT
-cargo:rustc-link-search=native=/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/release
+cargo:rustc-link-search=native=/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/release
 cargo:rustc-link-lib=static=AXUIElementBridge
 cargo:rustc-link-lib=framework=ApplicationServices
 cargo:rustc-link-lib=framework=CoreFoundation

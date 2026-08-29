@@ -1,4 +1,4 @@
 module AXUIElementBridge {
-    header "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h"
+    header "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h"
     requires objc
 }

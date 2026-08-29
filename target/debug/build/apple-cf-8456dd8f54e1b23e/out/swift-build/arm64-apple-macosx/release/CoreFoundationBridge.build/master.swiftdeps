@@ -1,7 +1,7 @@
 version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
-options: "957dbb81490a5c3bde35733a5b451dc7c187a1f74ae2279f349090fbbc3ef0d8"
-build_start_time: [1787695022, 139405000]
-build_end_time: [1787695045, 553772000]
+options: "c222a23ff7eff3ffa8e92707430a51c33c28f4f6ebe82793a29625062cf95345"
+build_start_time: [1788044530, 422646000]
+build_end_time: [1788044553, 458361000]
 inputs:
   ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/apple-cf-0.9.3/swift-bridge/Sources/CoreFoundationBridge/Base.swift"
   : [1153704088, 0]

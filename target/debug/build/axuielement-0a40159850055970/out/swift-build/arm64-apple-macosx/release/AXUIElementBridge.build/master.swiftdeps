@@ -1,7 +1,7 @@
 version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
-options: "08f7c16d4145ca968e2028266e39b8fd73deb6a6a742543b4541dab45b91cc76"
-build_start_time: [1787695022, 247234000]
-build_end_time: [1787695047, 658216000]
+options: "85865a4a26db69e66e449c756f483a61110b2988c38dc70277cc7da6d7f99635"
+build_start_time: [1788044529, 986596000]
+build_end_time: [1788044555, 535044000]
 inputs:
   ? "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/AXAction.swift"
   : [1153704088, 0]

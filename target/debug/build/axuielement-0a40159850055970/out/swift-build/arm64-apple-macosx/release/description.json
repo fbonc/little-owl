@@ -19,8 +19,8 @@
   "swiftCommands" : {
     "C.AXUIElementBridge-arm64-apple-macosx-release.module" : {
       "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
-      "fileList" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources",
-      "importPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules",
+      "fileList" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources",
+      "importPath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules",
       "inputs" : [
         {
           "kind" : "file",
@@ -64,27 +64,27 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources"
         }
       ],
       "isLibrary" : true,
       "moduleName" : "AXUIElementBridge",
-      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules/AXUIElementBridge.swiftmodule",
+      "moduleOutputPath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules/AXUIElementBridge.swiftmodule",
       "objects" : [
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -93,12 +93,12 @@
         "-j14",
         "-DSWIFT_PACKAGE",
         "-module-cache-path",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/ModuleCache",
         "-parseable-output",
         "-parse-as-library",
         "-emit-objc-header",
         "-emit-objc-header-path",
-        "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h",
+        "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h",
         "-swift-version",
         "5",
         "-F",
@@ -117,51 +117,51 @@
         "-package-name",
         "swift_bridge"
       ],
-      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/output-file-map.json",
+      "outputFileMapPath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/output-file-map.json",
       "outputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules/AXUIElementBridge.swiftmodule"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules/AXUIElementBridge.swiftmodule"
         }
       ],
       "prepareForIndexing" : false,
@@ -177,7 +177,7 @@
         "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/ProcessTrust.swift",
         "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/SystemWide.swift"
       ],
-      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build",
+      "tempsPath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build",
       "wholeModuleOptimization" : true
     }
   },
@@ -206,19 +206,19 @@
       "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/ProcessTrust.swift",
       "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/SystemWide.swift",
       "-I",
-      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules",
+      "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/Modules",
       "-target",
       "arm64-apple-macosx10.13",
       "-O",
       "-j14",
       "-DSWIFT_PACKAGE",
       "-module-cache-path",
-      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/ModuleCache",
+      "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/ModuleCache",
       "-parseable-output",
       "-parse-as-library",
       "-emit-objc-header",
       "-emit-objc-header-path",
-      "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h",
+      "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElementBridge-Swift.h",
       "-swift-version",
       "5",
       "-F",
@@ -255,7 +255,7 @@
     "enableAllTraits" : false
   },
   "writeCommands" : {
-    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources" : {
+    "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -303,9 +303,9 @@
           "name" : "/Users/felipe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axuielement-0.9.1/swift-bridge/Sources/AXUIElementBridge/SystemWide.swift"
         }
       ],
-      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources"
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/sources"
     },
-    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.product/Objects.LinkFileList" : {
+    "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.product/Objects.LinkFileList" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -314,48 +314,48 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAction.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXAttribute.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXError.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXNotification.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXObserver.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXTextMarker.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXUIElement.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/AXValue.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/ProcessTrust.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
+          "name" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.build/SystemWide.swift.o"
         }
       ],
-      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.product/Objects.LinkFileList"
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/AXUIElementBridge.product/Objects.LinkFileList"
     },
-    "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
+    "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
       "alwaysOutOfDate" : true,
       "inputs" : [
         {
@@ -367,7 +367,7 @@
           "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
         }
       ],
-      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl-macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+      "outputFilePath" : "/Users/felipe/Desktop/Dev/little-owl/.worktrees/macos-capture/target/debug/build/axuielement-0a40159850055970/out/swift-build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
     }
   }
 }
