@@ -19,11 +19,6 @@ pub enum ContextCaptureMethod {
     Ocr,
 }
 
-pub struct CaptureMethod<T> {
-    pub method: T,
-    pub implementation: Option<String>,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScreenRect {
     pub x: f64,
@@ -35,13 +30,12 @@ pub struct ScreenRect {
 
 pub struct TextCapture {
     pub text: String,
-    pub method: CaptureMethod<TextCaptureMethod>,
+    pub method: TextCaptureMethod,
 }
 
 pub struct OcrCapture {
     pub text: String,
     pub region: ScreenRect,
-    pub implementation: Option<String>,
 }
 
 pub enum Target {
@@ -51,7 +45,7 @@ pub enum Target {
 
 pub struct ContextCapture {
     pub text: String,
-    pub method: CaptureMethod<ContextCaptureMethod>,
+    pub method: ContextCaptureMethod,
 }
 
 pub struct Provenance {

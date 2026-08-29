@@ -1,6 +1,6 @@
 use crate::{
-    CaptureMethod, Capturer, ContextCapture, ContextCaptureMethod, Error, OcrCapture, Permission,
-    Provenance, Result, ScreenRect, TextCapture, TextCaptureMethod,
+    Capturer, ContextCapture, ContextCaptureMethod, Error, OcrCapture, Permission, Provenance,
+    Result, ScreenRect, TextCapture, TextCaptureMethod,
 };
 
 use axuielement as ax;
@@ -12,25 +12,25 @@ impl MacosCapturer {
         Self {}
     }
 
-    fn ax_selected_text(&self) -> Option<(String, Option<String>)> {
+    fn ax_selected_text(&self) -> Option<String> {
         // TODO(axuielement): system_wide -> kAXFocusedUIElement -> kAXSelectedText
         todo!("read kAXSelectedText via axuielement")
     }
 
-    fn clipboard_text(&self) -> Option<(String, Option<String>)> {
+    fn clipboard_text(&self) -> Option<String> {
         None
     }
 
-    fn ax_value_text(&self) -> Option<(String, Option<String>)> {
+    fn ax_value_text(&self) -> Option<String> {
         // TODO(axuielement): kAXFocusedUIElement -> kAXValue
         todo!("read kAXValue via axuielement")
     }
 
-    fn ocr_window_context(&self) -> Option<(String, Option<String>)> {
+    fn ocr_window_context(&self) -> Option<String> {
         None
     }
 
-    fn ocr_capture(&self, region: ScreenRect) -> Result<(String, Option<String>)> {
+    fn ocr_capture(&self, region: ScreenRect) -> Result<String> {
         // TODO: screenshot region (Err PermissionDenied{ScreenRecording} on denial);
         // AppKit points -> CG pixels (flip Y, * backingScaleFactor, + display origin);
         // Vision VNRecognizeTextRequest -> observations joined in reading order.
@@ -70,11 +70,8 @@ impl Capturer for MacosCapturer {
                 TextCaptureMethod::Accessibility => self.ax_selected_text(),
                 TextCaptureMethod::Clipboard => self.clipboard_text(),
             };
-            if let Some((text, implementation)) = got {
-                return Ok(TextCapture {
-                    text,
-                    method: CaptureMethod { method, implementation },
-                });
+            if let Some(text) = got {
+                return Ok(TextCapture { text, method });
             }
         }
         Err(Error::AllMethodsFailed)
@@ -86,23 +83,16 @@ impl Capturer for MacosCapturer {
                 ContextCaptureMethod::Accessibility => self.ax_value_text(),
                 ContextCaptureMethod::Ocr => self.ocr_window_context(),
             };
-            if let Some((text, implementation)) = got {
-                return Ok(ContextCapture {
-                    text,
-                    method: CaptureMethod { method, implementation },
-                });
+            if let Some(text) = got {
+                return Ok(ContextCapture { text, method });
             }
         }
         Err(Error::AllMethodsFailed)
     }
 
     fn capture_region(&self, region: ScreenRect) -> Result<OcrCapture> {
-        let (text, implementation) = self.ocr_capture(region)?;
-        Ok(OcrCapture {
-            text,
-            region,
-            implementation,
-        })
+        let text = self.ocr_capture(region)?;
+        Ok(OcrCapture { text, region })
     }
 
     fn capture_provenance(&self) -> Result<Provenance> {
