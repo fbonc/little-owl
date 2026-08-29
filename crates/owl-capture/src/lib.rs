@@ -83,9 +83,9 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub trait Capturer: Send + Sync {
-    fn capture_text(&self, prefer: &[TextCaptureMethod]) -> Result<TextCapture>;
+    fn capture_text(&self) -> Result<TextCapture>;
 
-    fn capture_context(&self, prefer: &[ContextCaptureMethod]) -> Result<ContextCapture>;
+    fn capture_context(&self) -> Result<ContextCapture>;
 
     fn capture_region(&self, region: ScreenRect) -> Result<OcrCapture>;
 

@@ -61,33 +61,39 @@ impl MacosCapturer {
 }
 
 impl Capturer for MacosCapturer {
-    fn capture_text(&self, prefer: &[TextCaptureMethod]) -> Result<TextCapture> {
+    fn capture_text(&self) -> Result<TextCapture> {
         if !ax::is_process_trusted_with_prompt() {
             return Err(Error::PermissionDenied {
                 permission: Permission::Accessibility,
             });
         }
-        for &method in prefer {
-            let got = match method {
-                TextCaptureMethod::Accessibility => self.ax_selected_text(),
-                TextCaptureMethod::Clipboard => self.clipboard_text(),
-            };
-            if let Some(text) = got {
-                return Ok(TextCapture { text, method });
-            }
+        if let Some(text) = self.ax_selected_text() {
+            return Ok(TextCapture {
+                text,
+                method: TextCaptureMethod::Accessibility,
+            });
+        }
+        if let Some(text) = self.clipboard_text() {
+            return Ok(TextCapture {
+                text,
+                method: TextCaptureMethod::Clipboard,
+            });
         }
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_context(&self, prefer: &[ContextCaptureMethod]) -> Result<ContextCapture> {
-        for &method in prefer {
-            let got = match method {
-                ContextCaptureMethod::Accessibility => self.ax_value_text(),
-                ContextCaptureMethod::Ocr => self.ocr_window_context(),
-            };
-            if let Some(text) = got {
-                return Ok(ContextCapture { text, method });
-            }
+    fn capture_context(&self) -> Result<ContextCapture> {
+        if let Some(text) = self.ax_value_text() {
+            return Ok(ContextCapture {
+                text,
+                method: ContextCaptureMethod::Accessibility,
+            });
+        }
+        if let Some(text) = self.ocr_window_context() {
+            return Ok(ContextCapture {
+                text,
+                method: ContextCaptureMethod::Ocr,
+            });
         }
         Err(Error::AllMethodsFailed)
     }
