@@ -10,10 +10,7 @@ use crate::{
     Result, ScreenRect, TextCapture, TextCaptureMethod,
 };
 
-/// How long to wait for the frontmost app to populate the clipboard after a
-/// synthetic Cmd+C before giving up on the clipboard fallback.
 const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(400);
-/// How often to re-read the clipboard while waiting for it to change.
 const CLIPBOARD_POLL_INTERVAL: Duration = Duration::from_millis(15);
 
 pub struct MacosCapturer {}
@@ -172,7 +169,6 @@ impl Capturer for MacosCapturer {
     }
 }
 
-/// Return the string unless it is empty or only whitespace.
 fn non_empty(s: String) -> Option<String> {
     if s.trim().is_empty() { None } else { Some(s) }
 }
