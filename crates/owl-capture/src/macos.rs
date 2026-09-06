@@ -77,15 +77,13 @@ impl MacosCapturer {
         non_empty(text)
     }
 
-    // fallback
+    // fallback: select-all + copy to grab the whole focused document as context,
+    // then restore the clipboard. Leaves the document selected.
     fn clipboard_context(&self) -> Option<String> {
         let mut clipboard = Clipboard::new().ok()?;
         let original = clipboard.get_text().ok();
 
-        if !send_cmd_chord('a') {
-            return None;
-        }
-        let captured = if send_copy_shortcut() {
+        let captured = if send_cmd_chord('a') && send_copy_shortcut() {
             poll_for_copied_text(&mut clipboard, original.as_deref())
         } else {
             None
@@ -101,7 +99,7 @@ impl MacosCapturer {
                 }
             }
         }
-        collapse_selection();
+
         captured.and_then(non_empty)
     }
 
@@ -239,13 +237,6 @@ fn send_cmd_chord(c: char) -> bool {
     let pressed = enigo.key(Key::Unicode(c), Direction::Click).is_ok();
     let released = enigo.key(Key::Meta, Direction::Release).is_ok();
     pressed && released
-}
-
-// used to undo a synthetic Cmd+A
-fn collapse_selection() {
-    if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
-        let _ = enigo.key(Key::LeftArrow, Direction::Click);
-    }
 }
 
 fn poll_for_copied_text(clipboard: &mut Clipboard, original: Option<&str>) -> Option<String> {
