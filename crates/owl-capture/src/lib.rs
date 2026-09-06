@@ -17,7 +17,6 @@ pub enum TextCaptureMethod {
 pub enum ContextCaptureMethod {
     Accessibility,
     Clipboard,
-    Ocr,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -34,19 +33,23 @@ pub struct TextCapture {
     pub method: TextCaptureMethod,
 }
 
-pub struct OcrCapture {
-    pub text: String,
+// A raw screen image handed to a multimodal model, rather than OCR'd to text.
+pub struct ImageCapture {
+    pub png: Vec<u8>,
     pub region: ScreenRect,
 }
 
 pub enum Target {
     Text(TextCapture),
-    Ocr(OcrCapture),
+    Image(ImageCapture),
 }
 
-pub struct ContextCapture {
-    pub text: String,
-    pub method: ContextCaptureMethod,
+pub enum ContextCapture {
+    Text {
+        text: String,
+        method: ContextCaptureMethod,
+    },
+    Image(ImageCapture),
 }
 
 pub struct Provenance {
@@ -71,7 +74,7 @@ pub enum Permission {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("no capture method produced text")]
+    #[error("no capture method succeeded")]
     AllMethodsFailed,
 
     #[error("{permission:?} permission not granted")]
@@ -88,7 +91,7 @@ pub trait Capturer: Send + Sync {
 
     fn capture_context(&self) -> Result<ContextCapture>;
 
-    fn capture_region(&self, region: ScreenRect) -> Result<OcrCapture>;
+    fn capture_region(&self, region: ScreenRect) -> Result<ImageCapture>;
 
     fn capture_provenance(&self) -> Result<Provenance>;
 }

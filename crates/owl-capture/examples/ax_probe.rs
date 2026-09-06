@@ -5,7 +5,7 @@
 use std::thread::sleep;
 use std::time::Duration;
 
-use owl_capture::new_capturer;
+use owl_capture::{ContextCapture, new_capturer};
 
 fn main() {
     eprintln!("\n--- focus target app + make a selection (4s) ---");
@@ -18,7 +18,10 @@ fn main() {
         Err(e) => eprintln!("text     : {e}"),
     }
     match cap.capture_context() {
-        Ok(c) => eprintln!("context  : {} chars via {:?}", c.text.len(), c.method),
+        Ok(ContextCapture::Text { text, method }) => {
+            eprintln!("context  : {} chars via {:?}", text.len(), method)
+        }
+        Ok(ContextCapture::Image(img)) => eprintln!("context  : image {} bytes", img.png.len()),
         Err(e) => eprintln!("context  : {e}"),
     }
     match cap.capture_provenance() {

@@ -7,7 +7,7 @@ use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 use objc2_app_kit::NSWorkspace;
 
 use crate::{
-    Capturer, ContextCapture, ContextCaptureMethod, Error, OcrCapture, Permission, Provenance,
+    Capturer, ContextCapture, ContextCaptureMethod, Error, ImageCapture, Permission, Provenance,
     Result, ScreenRect, TextCapture, TextCaptureMethod,
 };
 
@@ -56,12 +56,15 @@ impl MacosCapturer {
         captured
     }
 
-    fn ocr_capture(&self, region: ScreenRect) -> Result<String> {
+    // Screenshot a region as PNG bytes (sent to a multimodal model, no OCR).
+    fn capture_image(&self, region: ScreenRect) -> Result<Vec<u8>> {
         // Not yet implemented: needs a ScreenCaptureKit/CGDisplay screenshot of
         // the region, AppKit-points -> CG-pixels conversion (flip Y, scale by
-        // backingScaleFactor, add display origin), then Vision text recognition.
+        // backingScaleFactor, add display origin), then PNG-encode the crop.
         let _ = region;
-        Err(Error::Platform("OCR is not implemented".to_string()))
+        Err(Error::Platform(
+            "image capture is not implemented".to_string(),
+        ))
     }
 }
 
@@ -102,9 +105,8 @@ impl MacosCapturer {
         captured.and_then(non_empty)
     }
 
-    // fallback
-    fn ocr_window_context(&self) -> Option<String> {
-        // Window-region OCR context is not implemented (see ocr_capture).
+    // fallback: screenshot the focused window as context (see capture_image).
+    fn image_window_context(&self) -> Option<ImageCapture> {
         None
     }
 }
@@ -165,29 +167,26 @@ impl Capturer for MacosCapturer {
 
     fn capture_context(&self) -> Result<ContextCapture> {
         if let Some(text) = self.ax_value_text() {
-            return Ok(ContextCapture {
+            return Ok(ContextCapture::Text {
                 text,
                 method: ContextCaptureMethod::Accessibility,
             });
         }
         if let Some(text) = self.clipboard_context() {
-            return Ok(ContextCapture {
+            return Ok(ContextCapture::Text {
                 text,
                 method: ContextCaptureMethod::Clipboard,
             });
         }
-        if let Some(text) = self.ocr_window_context() {
-            return Ok(ContextCapture {
-                text,
-                method: ContextCaptureMethod::Ocr,
-            });
+        if let Some(image) = self.image_window_context() {
+            return Ok(ContextCapture::Image(image));
         }
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_region(&self, region: ScreenRect) -> Result<OcrCapture> {
-        let text = self.ocr_capture(region)?;
-        Ok(OcrCapture { text, region })
+    fn capture_region(&self, region: ScreenRect) -> Result<ImageCapture> {
+        let png = self.capture_image(region)?;
+        Ok(ImageCapture { png, region })
     }
 
     fn capture_provenance(&self) -> Result<Provenance> {
@@ -285,7 +284,6 @@ fn doc_url_to_path(doc: &str) -> Option<String> {
         return None;
     }
     if let Some(rest) = trimmed.strip_prefix("file://") {
-
         let path = rest.strip_prefix("localhost").unwrap_or(rest);
         if !path.starts_with('/') {
             return None;
@@ -293,7 +291,7 @@ fn doc_url_to_path(doc: &str) -> Option<String> {
         Some(percent_decode(path))
     } else if trimmed.starts_with('/') {
         Some(trimmed.to_string())
-    } else{
+    } else {
         None
     }
 }
@@ -426,7 +424,10 @@ mod tests {
     fn live_capture_context() {
         let cap = MacosCapturer::new();
         match cap.capture_context() {
-            Ok(c) => println!("context {} chars via {:?}", c.text.len(), c.method),
+            Ok(ContextCapture::Text { text, method }) => {
+                println!("context {} chars via {:?}", text.len(), method)
+            }
+            Ok(ContextCapture::Image(img)) => println!("context image {} bytes", img.png.len()),
             Err(e) => println!("no context: {e}"),
         }
     }
