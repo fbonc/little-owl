@@ -56,7 +56,7 @@ impl MacosCapturer {
         captured
     }
 
-    // Screenshot a region as PNG bytes (sent to a multimodal model, no OCR).
+    // Screenshot a region as PNG bytes.
     fn capture_image(&self, region: ScreenRect) -> Result<Vec<u8>> {
         // Not yet implemented: needs a ScreenCaptureKit/CGDisplay screenshot of
         // the region, AppKit-points -> CG-pixels conversion (flip Y, scale by
@@ -203,9 +203,6 @@ fn non_empty(s: String) -> Option<String> {
     if s.trim().is_empty() { None } else { Some(s) }
 }
 
-// Reads go through the frontmost application element, not the system-wide
-// element: the system-wide kAXFocusedUIElement/kAXFocusedApplication reads
-// return kAXErrorCannotComplete on some setups.
 fn frontmost_app_element() -> Option<ax::AXUIElement> {
     let pid = NSWorkspace::sharedWorkspace()
         .frontmostApplication()?
