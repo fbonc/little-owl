@@ -58,7 +58,7 @@ impl MacosCapturer {
 
     // Screenshot a region as PNG bytes.
     fn capture_image(&self, region: ScreenRect) -> Result<Vec<u8>> {
-        // Not yet implemented: needs a ScreenCaptureKit/CGDisplay screenshot of
+        // TO DO: needs a ScreenCaptureKit/CGDisplay screenshot of
         // the region, AppKit-points -> CG-pixels conversion (flip Y, scale by
         // backingScaleFactor, add display origin), then PNG-encode the crop.
         let _ = region;
@@ -126,13 +126,6 @@ impl MacosCapturer {
             .ok()?
     }
 
-    fn browser_url(&self) -> Option<String> {
-        // Browsers do not expose the address-bar URL through a standard AX attribute.
-        // Recovering it reliably requires per-browser AppleScript automation,
-        // which is a separate permission and out of scope here.
-        None
-    }
-
     fn document_path(&self) -> Option<String> {
         let doc = focused_window()?
             .string_attribute(ax::ax_attribute::AX_DOCUMENT_ATTRIBUTE)
@@ -191,7 +184,6 @@ impl Capturer for MacosCapturer {
         Ok(Provenance {
             app_name: self.focused_app_name().unwrap_or_default(),
             window_title: self.focused_window_title().unwrap_or_default(),
-            url: self.browser_url(),
             path: self.document_path(),
         })
     }
@@ -392,8 +384,8 @@ mod tests {
         let cap = MacosCapturer::new();
         let prov = cap.capture_provenance().expect("provenance is best-effort");
         println!(
-            "app={:?} window={:?} url={:?} path={:?}",
-            prov.app_name, prov.window_title, prov.url, prov.path
+            "app={:?} window={:?} path={:?}",
+            prov.app_name, prov.window_title, prov.path
         );
     }
 

@@ -26,8 +26,8 @@ fn main() {
     }
     match cap.capture_provenance() {
         Ok(p) => eprintln!(
-            "provenance: app={:?} window={:?} url={:?} path={:?}",
-            p.app_name, p.window_title, p.url, p.path
+            "provenance: app={:?} window={:?} path={:?}",
+            p.app_name, p.window_title, p.path
         ),
         Err(e) => eprintln!("provenance: {e}"),
     }

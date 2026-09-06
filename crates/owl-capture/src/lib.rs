@@ -55,7 +55,6 @@ pub enum ContextCapture {
 pub struct Provenance {
     pub app_name: String,
     pub window_title: String,
-    pub url: Option<String>,
     pub path: Option<String>,
 }
 
