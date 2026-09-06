@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 use arboard::Clipboard;
 use axuielement as ax;
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+use objc2_app_kit::NSWorkspace;
 
 use crate::{
     Capturer, ContextCapture, ContextCaptureMethod, Error, OcrCapture, Permission, Provenance,
@@ -19,25 +20,18 @@ impl MacosCapturer {
     pub fn new() -> Self {
         Self {}
     }
+}
 
+// Target capture
+impl MacosCapturer {
     fn ax_selected_text(&self) -> Option<String> {
-        let focused = ax::system_wide()?.focused_ui_element().ok()??;
-        let text = focused
+        let text = focused_element()?
             .string_attribute(ax::ax_attribute::AX_SELECTED_TEXT_ATTRIBUTE)
             .ok()??;
         non_empty(text)
     }
 
-    /// Recover the selected text by simulating Cmd+C and reading the clipboard,
-    /// then restoring the user's previous clipboard contents.
-    ///
-    /// This detects the copy by watching for the clipboard to *change*, so if
-    /// the selection happens to be byte-identical to what was already on the
-    /// clipboard the copy is indistinguishable from no-op and this returns
-    /// None. That false negative is benign for a lookup tool (the user retries)
-    /// and is the price of not clobbering the clipboard when there is nothing
-    /// to capture. Non-text clipboard contents (e.g. an image) cannot be
-    /// restored via arboard and are lost if a copy actually occurs.
+    // text fallback
     fn clipboard_text(&self) -> Option<String> {
         let mut clipboard = Clipboard::new().ok()?;
         let original = clipboard.get_text().ok();
@@ -48,10 +42,6 @@ impl MacosCapturer {
 
         let captured = poll_for_copied_text(&mut clipboard, original.as_deref());
 
-        // Only restore when we actually overwrote the clipboard: a successful
-        // capture means our Cmd+C replaced the contents, so put the user's data
-        // back. If nothing was captured we leave the clipboard untouched rather
-        // than risk clearing data our copy never displaced.
         if captured.is_some() {
             match &original {
                 Some(text) => {
@@ -66,19 +56,6 @@ impl MacosCapturer {
         captured
     }
 
-    fn ax_value_text(&self) -> Option<String> {
-        let focused = ax::system_wide()?.focused_ui_element().ok()??;
-        let text = focused
-            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
-            .ok()??;
-        non_empty(text)
-    }
-
-    fn ocr_window_context(&self) -> Option<String> {
-        // Window-region OCR context is not implemented (see ocr_capture).
-        None
-    }
-
     fn ocr_capture(&self, region: ScreenRect) -> Result<String> {
         // Not yet implemented: needs a ScreenCaptureKit/CGDisplay screenshot of
         // the region, AppKit-points -> CG-pixels conversion (flip Y, scale by
@@ -86,35 +63,56 @@ impl MacosCapturer {
         let _ = region;
         Err(Error::Platform("OCR is not implemented".to_string()))
     }
+}
 
+// Context capture
+impl MacosCapturer {
+    fn ax_value_text(&self) -> Option<String> {
+        let text = focused_element()?
+            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
+            .ok()??;
+        non_empty(text)
+    }
+
+    // fallback
+    fn ocr_window_context(&self) -> Option<String> {
+        // Window-region OCR context is not implemented (see ocr_capture).
+        None
+    }
+}
+
+// Provenance capture
+impl MacosCapturer {
     fn focused_app_name(&self) -> Option<String> {
-        let app = ax::system_wide()?.focused_application().ok()??;
-        app.string_attribute(ax::ax_attribute::AX_TITLE_ATTRIBUTE)
-            .ok()?
+        Some(
+            NSWorkspace::sharedWorkspace()
+                .frontmostApplication()?
+                .localizedName()?
+                .to_string(),
+        )
     }
 
     fn focused_window_title(&self) -> Option<String> {
-        let window = ax::system_wide()?.focused_window().ok()??;
-        window
+        focused_window()?
             .string_attribute(ax::ax_attribute::AX_TITLE_ATTRIBUTE)
             .ok()?
     }
 
     fn browser_url(&self) -> Option<String> {
-        // Browsers do not expose the address-bar URL through a standard AX
-        // attribute; recovering it reliably requires per-browser AppleScript
-        // automation (a separate permission), which is out of scope here.
+        // Browsers do not expose the address-bar URL through a standard AX attribute.
+        // Recovering it reliably requires per-browser AppleScript automation,
+        // which is a separate permission and out of scope here.
         None
     }
 
     fn document_path(&self) -> Option<String> {
-        let window = ax::system_wide()?.focused_window().ok()??;
-        let doc = window
+        let doc = focused_window()?
             .string_attribute(ax::ax_attribute::AX_DOCUMENT_ATTRIBUTE)
             .ok()??;
         doc_url_to_path(&doc)
     }
 }
+
 
 impl Capturer for MacosCapturer {
     fn capture_text(&self) -> Result<TextCapture> {
@@ -173,8 +171,28 @@ fn non_empty(s: String) -> Option<String> {
     if s.trim().is_empty() { None } else { Some(s) }
 }
 
-/// Send a synthetic Cmd+C. Returns whether the full chord was delivered; Meta
-/// is always released once pressed so a failed 'c' cannot leave it stuck.
+// Reads go through the frontmost application element, not the system-wide
+// element: the system-wide kAXFocusedUIElement/kAXFocusedApplication reads
+// return kAXErrorCannotComplete on some setups.
+fn frontmost_app_element() -> Option<ax::AXUIElement> {
+    let pid = NSWorkspace::sharedWorkspace()
+        .frontmostApplication()?
+        .processIdentifier();
+    ax::AXUIElement::from_pid(pid)
+}
+
+fn focused_element() -> Option<ax::AXUIElement> {
+    frontmost_app_element()?
+        .element_attribute(ax::ax_attribute::AX_FOCUSED_UI_ELEMENT_ATTRIBUTE)
+        .ok()?
+}
+
+fn focused_window() -> Option<ax::AXUIElement> {
+    frontmost_app_element()?
+        .element_attribute(ax::ax_attribute::AX_FOCUSED_WINDOW_ATTRIBUTE)
+        .ok()?
+}
+
 fn send_copy_shortcut() -> bool {
     let Ok(mut enigo) = Enigo::new(&Settings::default()) else {
         return false;
@@ -187,7 +205,6 @@ fn send_copy_shortcut() -> bool {
     pressed_c && released
 }
 
-/// Poll the clipboard until it differs from `original` or the timeout elapses.
 fn poll_for_copied_text(clipboard: &mut Clipboard, original: Option<&str>) -> Option<String> {
     let deadline = Instant::now() + CLIPBOARD_TIMEOUT;
     loop {
@@ -203,8 +220,6 @@ fn poll_for_copied_text(clipboard: &mut Clipboard, original: Option<&str>) -> Op
     }
 }
 
-/// The captured text if `current` is a non-empty value distinct from
-/// `original`, else None. Pure so the copy-detection rule can be unit tested.
 fn clipboard_changed(original: Option<&str>, current: &str) -> Option<String> {
     if current.trim().is_empty() {
         return None;
@@ -215,16 +230,15 @@ fn clipboard_changed(original: Option<&str>, current: &str) -> Option<String> {
     Some(current.to_string())
 }
 
-/// Convert a `kAXDocument` value into a filesystem path. It is normally a
-/// `file://` URL but some apps hand back a bare POSIX path.
+// Convert a `kAXDocument` value into a filesystem path.
+// normally a `file://` URL but some apps hand back a bare POSIX path.
 fn doc_url_to_path(doc: &str) -> Option<String> {
     let trimmed = doc.trim();
     if trimmed.is_empty() {
         return None;
     }
     if let Some(rest) = trimmed.strip_prefix("file://") {
-        // Drop an optional host component; a well-formed file URL then starts
-        // at the leading '/' of the path.
+
         let path = rest.strip_prefix("localhost").unwrap_or(rest);
         if !path.starts_with('/') {
             return None;
@@ -232,7 +246,7 @@ fn doc_url_to_path(doc: &str) -> Option<String> {
         Some(percent_decode(path))
     } else if trimmed.starts_with('/') {
         Some(trimmed.to_string())
-    } else {
+    } else{
         None
     }
 }
@@ -333,12 +347,11 @@ mod tests {
         assert_eq!(percent_decode("a%"), "a%");
     }
 
-    // Integration tests below drive the live macOS system: they need the
-    // Accessibility (and, for a real clipboard, a focused app with a selection)
-    // permissions granted to the test runner, so they are #[ignore]'d and run
-    // manually with `cargo test -- --ignored`. They assert only that the calls
-    // return without panicking, since the actual text depends on what is
-    // focused when they run.
+    // Integration tests.
+    // Need the Accessibility permissions granted to the test runner.
+    //
+    // Assert only that the calls return without panicking,
+    // since the actual text depends on what is focused when they run.
 
     #[test]
     #[ignore = "requires Accessibility permission and a focused app"]

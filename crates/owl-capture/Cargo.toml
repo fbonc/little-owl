@@ -13,3 +13,8 @@ thiserror = "2.0.20"
 arboard = "3.6.1"
 axuielement = "0.9.1"
 enigo = "0.6.1"
+# NSWorkspace, to get the frontmost app's pid: the system-wide AX element's
+# focused-element read returns kAXErrorCannotComplete on some setups, so reads
+# are routed through the frontmost application element (AXUIElementCreateApplication).
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication"] }
+objc2-foundation = { version = "0.3", features = ["NSString"] }
