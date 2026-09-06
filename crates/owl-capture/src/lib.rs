@@ -16,6 +16,7 @@ pub enum TextCaptureMethod {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContextCaptureMethod {
     Accessibility,
+    Clipboard,
     Ocr,
 }
 

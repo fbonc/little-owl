@@ -75,6 +75,34 @@ impl MacosCapturer {
     }
 
     // fallback
+    fn clipboard_context(&self) -> Option<String> {
+        let mut clipboard = Clipboard::new().ok()?;
+        let original = clipboard.get_text().ok();
+
+        if !send_cmd_chord('a') {
+            return None;
+        }
+        let captured = if send_copy_shortcut() {
+            poll_for_copied_text(&mut clipboard, original.as_deref())
+        } else {
+            None
+        };
+
+        if captured.is_some() {
+            match &original {
+                Some(text) => {
+                    let _ = clipboard.set_text(text.clone());
+                }
+                None => {
+                    let _ = clipboard.clear();
+                }
+            }
+        }
+        collapse_selection();
+        captured.and_then(non_empty)
+    }
+
+    // fallback
     fn ocr_window_context(&self) -> Option<String> {
         // Window-region OCR context is not implemented (see ocr_capture).
         None
@@ -113,7 +141,6 @@ impl MacosCapturer {
     }
 }
 
-
 impl Capturer for MacosCapturer {
     fn capture_text(&self) -> Result<TextCapture> {
         if !ax::is_process_trusted_with_prompt() {
@@ -141,6 +168,12 @@ impl Capturer for MacosCapturer {
             return Ok(ContextCapture {
                 text,
                 method: ContextCaptureMethod::Accessibility,
+            });
+        }
+        if let Some(text) = self.clipboard_context() {
+            return Ok(ContextCapture {
+                text,
+                method: ContextCaptureMethod::Clipboard,
             });
         }
         if let Some(text) = self.ocr_window_context() {
@@ -178,7 +211,10 @@ fn frontmost_app_element() -> Option<ax::AXUIElement> {
     let pid = NSWorkspace::sharedWorkspace()
         .frontmostApplication()?
         .processIdentifier();
-    ax::AXUIElement::from_pid(pid)
+    let app = ax::AXUIElement::from_pid(pid)?;
+    // Ask Chromium/Electron apps to build their AX tree (off by default).
+    let _ = app.set_bool_attribute("AXManualAccessibility", true);
+    Some(app)
 }
 
 fn focused_element() -> Option<ax::AXUIElement> {
@@ -194,15 +230,26 @@ fn focused_window() -> Option<ax::AXUIElement> {
 }
 
 fn send_copy_shortcut() -> bool {
+    send_cmd_chord('c')
+}
+
+fn send_cmd_chord(c: char) -> bool {
     let Ok(mut enigo) = Enigo::new(&Settings::default()) else {
         return false;
     };
     if enigo.key(Key::Meta, Direction::Press).is_err() {
         return false;
     }
-    let pressed_c = enigo.key(Key::Unicode('c'), Direction::Click).is_ok();
+    let pressed = enigo.key(Key::Unicode(c), Direction::Click).is_ok();
     let released = enigo.key(Key::Meta, Direction::Release).is_ok();
-    pressed_c && released
+    pressed && released
+}
+
+// used to undo a synthetic Cmd+A
+fn collapse_selection() {
+    if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
+        let _ = enigo.key(Key::LeftArrow, Direction::Click);
+    }
 }
 
 fn poll_for_copied_text(clipboard: &mut Clipboard, original: Option<&str>) -> Option<String> {
