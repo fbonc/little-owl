@@ -59,9 +59,10 @@ impl MacosCapturer {
         captured
     }
 
-    // Screenshot a region as PNG bytes.
-    fn capture_image(&self, region: ScreenRect) -> Result<Vec<u8>> {
-        screenshot_png(region)
+    // Screenshot a region into an ImageCapture (PNG bytes + the region shot).
+    fn capture_image(&self, region: ScreenRect) -> Result<ImageCapture> {
+        let png = screenshot_png(region)?;
+        Ok(ImageCapture { png, region })
     }
 }
 
@@ -109,8 +110,7 @@ impl MacosCapturer {
             .size_attribute(ax::ax_attribute::AX_SIZE_ATTRIBUTE)
             .ok()??;
         let region = window_screen_rect(pos, size)?;
-        let png = self.capture_image(region).ok()?;
-        Some(ImageCapture { png, region })
+        self.capture_image(region).ok()
     }
 }
 
@@ -181,8 +181,7 @@ impl Capturer for MacosCapturer {
     }
 
     fn capture_region(&self, region: ScreenRect) -> Result<ImageCapture> {
-        let png = self.capture_image(region)?;
-        Ok(ImageCapture { png, region })
+        self.capture_image(region)
     }
 
     fn capture_provenance(&self) -> Result<Provenance> {
