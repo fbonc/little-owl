@@ -34,7 +34,7 @@ impl MacosCapturer {
         non_empty(text)
     }
 
-    // text fallback
+    // text fallback: clipboard
     fn clipboard_text(&self) -> Option<String> {
         let mut clipboard = Clipboard::new().ok()?;
         let original = clipboard.get_text().ok();
@@ -75,7 +75,7 @@ impl MacosCapturer {
         non_empty(text)
     }
 
-    // fallback: cmd+a, copy to grab the whole focused document as context, then restore the clipboard.
+    // fallback: clipboard
     fn clipboard_context(&self) -> Option<String> {
         let mut clipboard = Clipboard::new().ok()?;
         let original = clipboard.get_text().ok();
@@ -100,7 +100,7 @@ impl MacosCapturer {
         captured.and_then(non_empty)
     }
 
-    // fallback: screenshot the focused window as context.
+    // fallback: screenshot the focused window as context
     fn image_window_context(&self) -> Option<ImageCapture> {
         let window = focused_window()?;
         let pos = window

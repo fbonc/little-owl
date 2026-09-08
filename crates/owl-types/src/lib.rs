@@ -1,8 +1,3 @@
-//! Shared data vocabulary for little-owl: the capture result types passed between
-//! owl-capture (producer), owl-core (orchestrator), and owl-ui (renderer). A leaf
-//! crate with no dependencies, so any crate can name these without coupling to
-//! another crate or its platform stack.
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TextCaptureMethod {
     Accessibility,
@@ -15,7 +10,7 @@ pub enum ContextCaptureMethod {
     Clipboard,
 }
 
-// `display` is the platform display id (a CGDirectDisplayID on macOS).
+// `display` is the platform display id (e.g., a CGDirectDisplayID on macOS).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScreenRect {
     pub x: f64,
@@ -31,15 +26,12 @@ pub struct TextCapture {
     pub method: TextCaptureMethod,
 }
 
-// A raw screen image handed to a multimodal model, rather than OCR'd to text.
 #[derive(Debug, Clone)]
 pub struct ImageCapture {
     pub png: Vec<u8>,
     pub region: ScreenRect,
 }
 
-/// The captured target being looked up: the highlighted text, or an image region
-/// when text capture failed and we fell back to a screenshot.
 #[derive(Debug, Clone)]
 pub enum Target {
     Text(TextCapture),
