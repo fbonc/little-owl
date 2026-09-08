@@ -7,12 +7,16 @@ edition = "2024"
 thiserror = "2.0.20"
 
 # macOS is the only platform whose capturer is implemented, and arboard/enigo/
-# axuielement are used solely by macos.rs, so scope them to macOS and avoid
-# building the X11/Windows clipboard and input stacks elsewhere.
+# axuielement/xcap are used solely by macos.rs, so scope them to macOS and avoid
+# building the X11/Windows clipboard, input and capture stacks elsewhere.
 [target.'cfg(target_os = "macos")'.dependencies]
 arboard = "3.6.1"
 axuielement = "0.9.1"
 enigo = "0.6.1"
+# Screenshot backend. default-features = false keeps it to the always-on `image`
+# dep (png only); its `image` feature would pull in every other codec. `xcap::image`
+# is re-exported, so PNG encoding needs no separate image dependency.
+xcap = { version = "0.9.8", default-features = false }
 # NSWorkspace, to get the frontmost app's pid: the system-wide AX element's
 # focused-element read returns kAXErrorCannotComplete on some setups, so reads
 # are routed through the frontmost application element (AXUIElementCreateApplication).

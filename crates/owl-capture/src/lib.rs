@@ -19,6 +19,9 @@ pub enum ContextCaptureMethod {
     Clipboard,
 }
 
+// A rectangle on a single display. `x`/`y`/`w`/`h` are logical points relative
+// to that display's top-left origin; `display` is the platform display id
+// (a CGDirectDisplayID on macOS).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScreenRect {
     pub x: f64,

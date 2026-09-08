@@ -1,3 +1,4 @@
+use std::io::Cursor;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -5,6 +6,8 @@ use arboard::Clipboard;
 use axuielement as ax;
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 use objc2_app_kit::NSWorkspace;
+use xcap::Monitor;
+use xcap::image::{ImageFormat, RgbaImage};
 
 use crate::{
     Capturer, ContextCapture, ContextCaptureMethod, Error, ImageCapture, Permission, Provenance,
@@ -58,13 +61,7 @@ impl MacosCapturer {
 
     // Screenshot a region as PNG bytes.
     fn capture_image(&self, region: ScreenRect) -> Result<Vec<u8>> {
-        // TO DO: needs a ScreenCaptureKit/CGDisplay screenshot of
-        // the region, AppKit-points -> CG-pixels conversion (flip Y, scale by
-        // backingScaleFactor, add display origin), then PNG-encode the crop.
-        let _ = region;
-        Err(Error::Platform(
-            "image capture is not implemented".to_string(),
-        ))
+        screenshot_png(region)
     }
 }
 
@@ -105,7 +102,16 @@ impl MacosCapturer {
 
     // fallback: screenshot the focused window as context (see capture_image).
     fn image_window_context(&self) -> Option<ImageCapture> {
-        None
+        let window = focused_window()?;
+        let pos = window
+            .point_attribute(ax::ax_attribute::AX_POSITION_ATTRIBUTE)
+            .ok()??;
+        let size = window
+            .size_attribute(ax::ax_attribute::AX_SIZE_ATTRIBUTE)
+            .ok()??;
+        let region = window_screen_rect(pos, size)?;
+        let png = self.capture_image(region).ok()?;
+        Some(ImageCapture { png, region })
     }
 }
 
@@ -213,6 +219,69 @@ fn focused_window() -> Option<ax::AXUIElement> {
     frontmost_app_element()?
         .element_attribute(ax::ax_attribute::AX_FOCUSED_WINDOW_ATTRIBUTE)
         .ok()?
+}
+
+// Screenshot `region` (display-relative logical points, see ScreenRect) as PNG bytes.
+fn screenshot_png(region: ScreenRect) -> Result<Vec<u8>> {
+    let monitor = monitor_for_display(region.display)?;
+    let (mon_w, mon_h) = (
+        monitor.width().map_err(xcap_err)?,
+        monitor.height().map_err(xcap_err)?,
+    );
+    let (x, y, w, h) = clamp_region(region, mon_w, mon_h)
+        .ok_or_else(|| Error::Platform("capture region is empty or off-screen".to_string()))?;
+    let image = monitor.capture_region(x, y, w, h).map_err(xcap_err)?;
+    encode_png(&image)
+}
+
+fn monitor_for_display(display: u32) -> Result<Monitor> {
+    Monitor::all()
+        .map_err(xcap_err)?
+        .into_iter()
+        .find(|m| m.id().map(|id| id == display).unwrap_or(false))
+        .ok_or_else(|| Error::Platform(format!("no monitor with display id {display}")))
+}
+
+// Clip a display-relative region to the monitor and snap to whole pixels.
+// Returns None if nothing on-screen remains.
+fn clamp_region(region: ScreenRect, mon_w: u32, mon_h: u32) -> Option<(u32, u32, u32, u32)> {
+    let (mon_w, mon_h) = (mon_w as f64, mon_h as f64);
+    let left = region.x.max(0.0);
+    let top = region.y.max(0.0);
+    let right = (region.x + region.w).min(mon_w);
+    let bottom = (region.y + region.h).min(mon_h);
+    let w = right - left;
+    let h = bottom - top;
+    if w < 1.0 || h < 1.0 {
+        return None;
+    }
+    Some((left as u32, top as u32, w as u32, h as u32))
+}
+
+// Map an AX window rect (global top-left points) to a display-relative ScreenRect.
+fn window_screen_rect(pos: ax::AXPoint, size: ax::AXSize) -> Option<ScreenRect> {
+    let center_x = (pos.x + size.width / 2.0) as i32;
+    let center_y = (pos.y + size.height / 2.0) as i32;
+    let monitor = Monitor::from_point(center_x, center_y).ok()?;
+    Some(ScreenRect {
+        x: pos.x - monitor.x().ok()? as f64,
+        y: pos.y - monitor.y().ok()? as f64,
+        w: size.width,
+        h: size.height,
+        display: monitor.id().ok()?,
+    })
+}
+
+fn encode_png(image: &RgbaImage) -> Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    image
+        .write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
+        .map_err(|e| Error::Platform(format!("PNG encode failed: {e}")))?;
+    Ok(buf)
+}
+
+fn xcap_err(e: xcap::XCapError) -> Error {
+    Error::Platform(format!("screen capture failed: {e}"))
 }
 
 fn send_copy_shortcut() -> bool {
@@ -372,6 +441,51 @@ mod tests {
         assert_eq!(percent_decode("a%"), "a%");
     }
 
+    fn rect(x: f64, y: f64, w: f64, h: f64) -> ScreenRect {
+        ScreenRect {
+            x,
+            y,
+            w,
+            h,
+            display: 0,
+        }
+    }
+
+    #[test]
+    fn clamp_region_within_bounds() {
+        assert_eq!(
+            clamp_region(rect(10.0, 20.0, 100.0, 50.0), 1920, 1080),
+            Some((10, 20, 100, 50))
+        );
+    }
+
+    #[test]
+    fn clamp_region_clips_to_monitor() {
+        // Overhangs the right/bottom edges: width/height are trimmed.
+        assert_eq!(
+            clamp_region(rect(1900.0, 1060.0, 100.0, 100.0), 1920, 1080),
+            Some((1900, 1060, 20, 20))
+        );
+        // Negative origin (off the top-left) is clipped back to zero.
+        assert_eq!(
+            clamp_region(rect(-30.0, -10.0, 100.0, 60.0), 1920, 1080),
+            Some((0, 0, 70, 50))
+        );
+    }
+
+    #[test]
+    fn clamp_region_rejects_empty() {
+        // Zero area.
+        assert_eq!(clamp_region(rect(0.0, 0.0, 0.0, 100.0), 1920, 1080), None);
+        // Fully off-screen to the right.
+        assert_eq!(
+            clamp_region(rect(3000.0, 0.0, 100.0, 100.0), 1920, 1080),
+            None
+        );
+        // Sub-pixel sliver.
+        assert_eq!(clamp_region(rect(0.0, 0.0, 0.4, 0.4), 1920, 1080), None);
+    }
+
     // Integration tests.
     // Need the Accessibility permissions granted to the test runner.
     //
@@ -397,6 +511,27 @@ mod tests {
             Ok(t) => println!("captured {:?} via {:?}", t.text, t.method),
             Err(e) => println!("no text captured: {e}"),
         }
+    }
+
+    #[test]
+    #[ignore = "requires Screen Recording permission"]
+    fn live_capture_region() {
+        let display = Monitor::all()
+            .expect("monitors")
+            .into_iter()
+            .find_map(|m| m.is_primary().ok().filter(|&p| p).and(m.id().ok()))
+            .expect("a primary monitor");
+        let cap = MacosCapturer::new();
+        let region = ScreenRect {
+            x: 0.0,
+            y: 0.0,
+            w: 200.0,
+            h: 200.0,
+            display,
+        };
+        let img = cap.capture_region(region).expect("capture");
+        assert!(!img.png.is_empty());
+        assert_eq!(&img.png[..8], b"\x89PNG\r\n\x1a\n");
     }
 
     #[test]
