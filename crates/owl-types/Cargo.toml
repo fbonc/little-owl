@@ -1,0 +1,9 @@
+[package]
+name = "owl-types"
+version = "0.1.0"
+edition = "2024"
+
+# Leaf crate: shared data vocabulary with no dependencies, so owl-capture,
+# owl-core, and owl-ui can all name these types without pulling in a platform
+# stack or depending on each other.
+[dependencies]

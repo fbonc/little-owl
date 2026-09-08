@@ -1559,6 +1559,7 @@ dependencies = [
  "enigo",
  "objc2-app-kit",
  "objc2-foundation",
+ "owl-types",
  "thiserror",
  "xcap",
 ]
@@ -1569,6 +1570,10 @@ version = "0.1.0"
 dependencies = [
  "global-hotkey",
 ]
+
+[[package]]
+name = "owl-types"
+version = "0.1.0"
 
 [[package]]
 name = "parking"

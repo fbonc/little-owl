@@ -1,70 +1,19 @@
 use thiserror::Error;
 
+// Shared data vocabulary lives in owl-types (a dependency-light leaf crate) so
+// owl-core and owl-ui can name these without depending on owl-capture. Re-exported
+// here so `owl_capture::Target` etc. and the trait signatures below keep working.
+pub use owl_types::{
+    Capture, ContextCapture, ContextCaptureMethod, ImageCapture, Provenance, ScreenRect, Target,
+    TextCapture, TextCaptureMethod,
+};
+
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TextCaptureMethod {
-    Accessibility,
-    Clipboard,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ContextCaptureMethod {
-    Accessibility,
-    Clipboard,
-}
-
-// `display` is the platform display id (a CGDirectDisplayID on macOS).
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ScreenRect {
-    pub x: f64,
-    pub y: f64,
-    pub w: f64,
-    pub h: f64,
-    pub display: u32,
-}
-
-pub struct TextCapture {
-    pub text: String,
-    pub method: TextCaptureMethod,
-}
-
-// A raw screen image handed to a multimodal model, rather than OCR'd to text.
-pub struct ImageCapture {
-    pub png: Vec<u8>,
-    pub region: ScreenRect,
-}
-
-pub enum Target {
-    Text(TextCapture),
-    Image(ImageCapture),
-}
-
-pub enum ContextCapture {
-    Text {
-        text: String,
-        method: ContextCaptureMethod,
-    },
-    Image(ImageCapture),
-}
-
-pub struct Provenance {
-    pub app_name: String,
-    pub window_title: String,
-    pub path: Option<String>,
-}
-
-pub struct Capture {
-    pub target: Option<Target>,
-    pub context: Option<ContextCapture>,
-    pub provenance: Option<Provenance>,
-    pub elapsed_ms: u32,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Permission {
