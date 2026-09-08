@@ -74,8 +74,7 @@ impl MacosCapturer {
         non_empty(text)
     }
 
-    // fallback: select-all + copy to grab the whole focused document as context,
-    // then restore the clipboard. Leaves the document selected.
+    // fallback: cmd+a, copy to grab the whole focused document as context, then restore the clipboard.
     fn clipboard_context(&self) -> Option<String> {
         let mut clipboard = Clipboard::new().ok()?;
         let original = clipboard.get_text().ok();
@@ -100,7 +99,7 @@ impl MacosCapturer {
         captured.and_then(non_empty)
     }
 
-    // fallback: screenshot the focused window as context (see capture_image).
+    // fallback: screenshot the focused window as context.
     fn image_window_context(&self) -> Option<ImageCapture> {
         let window = focused_window()?;
         let pos = window
@@ -221,7 +220,6 @@ fn focused_window() -> Option<ax::AXUIElement> {
         .ok()?
 }
 
-// Screenshot `region` (display-relative logical points, see ScreenRect) as PNG bytes.
 fn screenshot_png(region: ScreenRect) -> Result<Vec<u8>> {
     let monitor = monitor_for_display(region.display)?;
     let (mon_w, mon_h) = (
