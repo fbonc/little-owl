@@ -24,7 +24,7 @@ cargo fmt --check
 ## Testing pattern
 
 - Pure helpers (`clamp_region`, `doc_url_to_path`, `percent_decode`, `clipboard_changed`, `non_empty`) have plain unit tests.
-- Anything hitting the live system is a `#[ignore]` test with a reason string; it needs Accessibility and/or Screen Recording granted to the test runner. `examples/ax_probe.rs` is the manual probe.
+- Anything hitting the live system is a `#[ignore]` test with a reason string; it needs Accessibility and/or Screen Recording granted to the test runner.
 
 ## Permissions
 
