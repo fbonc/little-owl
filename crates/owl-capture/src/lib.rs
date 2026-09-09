@@ -8,12 +8,8 @@ pub use owl_types::{
     TextCapture, TextCaptureMethod,
 };
 
-#[cfg(target_os = "linux")]
-mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(target_os = "windows")]
-mod windows;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Permission {
@@ -48,10 +44,4 @@ pub trait Capturer: Send + Sync {
 pub fn new_capturer() -> Box<dyn Capturer> {
     #[cfg(target_os = "macos")]
     return Box::new(macos::MacosCapturer::new());
-
-    #[cfg(target_os = "windows")]
-    return Box::new(windows::WindowsCapturer::new());
-
-    #[cfg(target_os = "linux")]
-    return Box::new(linux::LinuxCapturer::new());
 }
