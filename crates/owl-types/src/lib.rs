@@ -62,8 +62,6 @@ pub struct Capture {
     pub elapsed_ms: u32,
 }
 
-/// An event core sends to the overlay as one lookup progresses: the core->ui wire
-/// protocol. The overlay folds each into its render state.
 #[derive(Debug, Clone)]
 pub enum UiEvent {
     Show,
