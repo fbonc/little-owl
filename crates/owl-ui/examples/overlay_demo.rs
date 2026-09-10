@@ -17,7 +17,7 @@ use owl_types::{TextCapture, TextCaptureMethod};
 use owl_ui::{Overlay, Phase, Submit, Target, UiEvent, ViewMessage};
 
 const WINDOW_WIDTH: f32 = 640.0;
-const ASKING_HEIGHT: f32 = 128.0;
+const ASKING_HEIGHT: f32 = 140.0;
 const MAX_HEIGHT: f32 = 440.0;
 
 struct Demo {
@@ -120,7 +120,8 @@ fn content_size(overlay: &Overlay) -> iced::Size {
     let height = match overlay.phase {
         Phase::Asking => ASKING_HEIGHT,
         Phase::Answering => {
-            const CHROME: f32 = 44.0 + 17.0 + 14.0; // padding*2 + target line + spacing
+            // padding*2 + header row (logo/target) + spacing
+            const CHROME: f32 = 44.0 + 30.0 + 14.0;
             const LINE: f32 = 21.0;
             let per_line = ((WINDOW_WIDTH - 44.0) / 7.6).max(1.0);
             let lines = (overlay.answer.chars().count() as f32 / per_line)
@@ -165,11 +166,91 @@ fn sample_target() -> Target {
     })
 }
 
+const NONE_ANSWER: &str = "
+A transformer is a neural network architecture designed to process sequences such as text. It is the basic architecture behind many modern language models.
+
+The main idea is attention.
+
+Instead of reading a sentence strictly one word at a time, a transformer can examine many words at once and determine which words are relevant to each other.
+
+For example, in the sentence:
+
+The dog chased the ball because it was moving.
+
+When processing the word “it,” the model can use attention to decide that “it” is strongly related to “the ball.”
+
+Before attention happens, each word or token is converted into a vector called an embedding. An embedding is just a collection of numbers that represents information about that token.
+
+Because transformers process tokens in parallel, they also need information about word order. This is added using positional information, so the model can distinguish between sentences such as:
+
+Dog bites man.
+
+and
+
+Man bites dog.
+
+The central mechanism is called self-attention.
+
+For every token, the transformer creates three representations called a query, a key, and a value.
+
+The query roughly represents what the token is looking for.
+
+The key represents what information a token contains or how it can be matched.
+
+The value represents the information that can actually be passed along.
+
+The transformer compares each token’s query with the keys of other tokens. Tokens with stronger matches receive more attention. Their values are then combined to create a new representation of the current token.
+
+Transformers usually use multi-head attention. This means several attention mechanisms operate at the same time. Different heads can learn different kinds of relationships. One might focus on grammar, another on nearby words, and another on long-distance relationships.
+
+After the attention step, the information passes through a small feed-forward neural network. This lets the model transform and refine the information it gathered through attention.
+
+A transformer contains many of these layers stacked on top of each other. Early layers may learn relatively simple patterns, while later layers can represent increasingly complex relationships.
+
+Two other important components are residual connections and layer normalization. Residual connections help information flow through many layers without being lost, while layer normalization helps keep the network numerically stable during training.
+
+The original Transformer architecture had two major parts: an encoder and a decoder.
+
+The encoder reads and builds representations of input text.
+
+The decoder generates output text while paying attention to both previously generated tokens and information from the encoder.
+
+Translation systems often use this encoder-decoder structure.
+
+Models like the original GPT family primarily use the decoder part of the Transformer. They generate text one token at a time. When predicting the next token, they are prevented from looking at future tokens. This is called causal or masked self-attention.
+
+A simplified GPT-style process looks like this:
+
+Text is split into tokens.
+
+Tokens become numerical embeddings.
+
+Positional information is added.
+
+The embeddings pass through many transformer layers.
+
+Each layer performs self-attention and feed-forward processing.
+
+The final representation is converted into probabilities for possible next tokens.
+
+One token is selected.
+
+That token is added to the sequence.
+
+The process repeats.
+
+So, in very simple terms, a transformer repeatedly asks:
+
+What parts of the text should I pay attention to right now?
+
+It uses the answer to build richer representations of the text and, in a language model, predict what should come next.
+";
+
+
 fn answer_events(ask: Option<&str>) -> Vec<UiEvent> {
     let body = match ask {
         Some(ask) => format!("You asked: {ask}. Here is a mocked streamed reply."),
-        None => "Epistemic uncertainty is uncertainty that comes from a lack of \
-                 knowledge, reducible in principle with more data or a better model."
+        None => NONE_ANSWER
             .to_string(),
     };
     let mut events: Vec<UiEvent> = body

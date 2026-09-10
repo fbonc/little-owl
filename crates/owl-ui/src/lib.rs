@@ -1,7 +1,15 @@
-use iced::widget::{column, container, scrollable, text, text_input};
-use iced::{Element, Fill};
+use std::sync::LazyLock;
+
+use iced::widget::{column, container, image, row, scrollable, text, text_input};
+use iced::{Center, Element, Fill};
 
 pub use owl_types::{Target, UiEvent};
+
+// Built once: `image::Handle::from_bytes` mints a fresh id each call, so building
+// it per frame would defeat iced's decoded-image cache.
+static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
+    image::Handle::from_bytes(include_bytes!("../../../assets/logo.png").as_slice())
+});
 
 #[derive(Debug, Clone)]
 pub enum ViewMessage {
@@ -145,30 +153,40 @@ mod style {
     pub const CARD_PADDING: f32 = 22.0;
     pub const INPUT_PADDING: f32 = 12.0;
     pub const INPUT_RADIUS: f32 = 10.0;
+    pub const LOGO_SIZE: f32 = 30.0;
+    pub const HEADER_SPACING: f32 = 10.0;
 
     pub const TARGET_SIZE: f32 = 13.0;
     pub const INPUT_SIZE: f32 = 16.0;
     pub const ANSWER_SIZE: f32 = 15.0;
     pub const ERROR_SIZE: f32 = 14.0;
 
-    pub const PROMPT_PLACEHOLDER: &str = "Hoot me...  (Enter to explain)";
+    pub const PROMPT_PLACEHOLDER: &str = "Hoot me...  (Enter to explain or define)";
     pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
 }
 
 pub fn view(overlay: &Overlay) -> Element<'_, ViewMessage> {
     let mut ask_card = column![].spacing(style::CARD_SPACING);
 
+    let mut header = row![
+        image(LOGO.clone())
+            .width(style::LOGO_SIZE)
+            .height(style::LOGO_SIZE)
+    ]
+    .spacing(style::HEADER_SPACING)
+    .align_y(Center);
     if let Some(target) = &overlay.target {
         let label = match target {
             Target::Text(t) => t.text.clone(),
             Target::Image(_) => style::IMAGE_TARGET_LABEL.to_string(),
         };
-        ask_card = ask_card.push(
+        header = header.push(
             text(label)
                 .size(style::TARGET_SIZE)
                 .color(style::MUTED_COLOR),
         );
     }
+    ask_card = ask_card.push(header);
 
     match overlay.phase {
         Phase::Asking => {

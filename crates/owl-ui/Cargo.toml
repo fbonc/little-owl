@@ -7,7 +7,7 @@ edition = "2024"
 # owl-types is the shared data vocabulary (leaf crate). The window + event source
 # live in the host (owl-app / the overlay_demo example), not here.
 [dependencies]
-iced = { version = "0.14.0", features = ["tokio"] }
+iced = { version = "0.14.0", features = ["tokio", "image"] }
 owl-types = { path = "../owl-types" }
 
 # The demo host only: tokio::time::sleep paces the mocked answer stream.
