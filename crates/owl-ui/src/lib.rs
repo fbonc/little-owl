@@ -1,4 +1,4 @@
-use iced::widget::{center, column, container, scrollable, text, text_input};
+use iced::widget::{column, container, scrollable, text, text_input};
 use iced::{Element, Fill};
 
 pub use owl_types::{Target, UiEvent};
@@ -74,36 +74,61 @@ mod style {
     use iced::border::Radius;
     use iced::{Border, Color};
 
+    // Palette pulled from the owl logo: cocoa ground, cream text, warm tan, amber.
     pub const TEXT_COLOR: Color = Color {
-        r: 0.90,
-        g: 0.90,
-        b: 0.93,
+        r: 0.95,
+        g: 0.88,
+        b: 0.77,
         a: 1.0,
     };
     pub const MUTED_COLOR: Color = Color {
-        r: 0.58,
-        g: 0.58,
-        b: 0.64,
+        r: 0.72,
+        g: 0.60,
+        b: 0.45,
         a: 1.0,
     };
     pub const DANGER_COLOR: Color = Color {
-        r: 1.0,
-        g: 0.42,
-        b: 0.42,
+        r: 0.90,
+        g: 0.44,
+        b: 0.38,
+        a: 1.0,
+    };
+    pub const ACCENT_COLOR: Color = Color {
+        r: 0.93,
+        g: 0.70,
+        b: 0.29,
         a: 1.0,
     };
 
     pub const BACKGROUND_COLOR: Color = Color {
-        r: 0.16,
-        g: 0.09,
-        b: 0.08,
+        r: 0.17,
+        g: 0.095,
+        b: 0.078,
         a: 1.0,
     };
+    pub const INPUT_BACKGROUND: Color = Color {
+        r: 0.24,
+        g: 0.15,
+        b: 0.12,
+        a: 1.0,
+    };
+    pub const INPUT_BORDER_COLOR: Color = Color {
+        r: 0.72,
+        g: 0.60,
+        b: 0.45,
+        a: 0.30,
+    };
+    pub const SELECTION_COLOR: Color = Color {
+        r: 0.93,
+        g: 0.70,
+        b: 0.29,
+        a: 0.35,
+    };
     pub const BORDER_COLOR: Color = Color {
-        r: 1.0,
-        g: 1.0,
-        b: 1.0,
-        a: 0.08,
+        r: 0.93,
+        g: 0.70,
+        b: 0.29,
+        a: 0.22,
     };
     pub const BORDER_STYLE: Border = Border {
         color: BORDER_COLOR,
@@ -118,9 +143,8 @@ mod style {
 
     pub const CARD_SPACING: f32 = 14.0;
     pub const CARD_PADDING: f32 = 22.0;
-    pub const CARD_MAX_WIDTH: f32 = 560.0;
-    pub const SCREEN_PADDING: f32 = 48.0;
     pub const INPUT_PADDING: f32 = 12.0;
+    pub const INPUT_RADIUS: f32 = 10.0;
 
     pub const TARGET_SIZE: f32 = 13.0;
     pub const INPUT_SIZE: f32 = 16.0;
@@ -153,7 +177,8 @@ pub fn view(overlay: &Overlay) -> Element<'_, ViewMessage> {
                     .on_input(ViewMessage::InputChanged)
                     .on_submit(ViewMessage::Submit)
                     .padding(style::INPUT_PADDING)
-                    .size(style::INPUT_SIZE),
+                    .size(style::INPUT_SIZE)
+                    .style(input_style),
             );
         }
         Phase::Answering => {
@@ -173,13 +198,33 @@ pub fn view(overlay: &Overlay) -> Element<'_, ViewMessage> {
         }
     }
 
-    let ask_card = container(ask_card)
+    // Fill the window so the opaque card covers it edge to edge; a smaller card in
+    // a transparent window would show the desktop through the uncovered margin.
+    container(ask_card)
         .padding(style::CARD_PADDING)
-        .max_width(style::CARD_MAX_WIDTH)
         .width(Fill)
-        .style(card_style);
+        .height(Fill)
+        .style(card_style)
+        .into()
+}
 
-    center(ask_card).padding(style::SCREEN_PADDING).into()
+fn input_style(_theme: &iced::Theme, status: text_input::Status) -> text_input::Style {
+    let border_color = match status {
+        text_input::Status::Focused { .. } => style::ACCENT_COLOR,
+        _ => style::INPUT_BORDER_COLOR,
+    };
+    text_input::Style {
+        background: style::INPUT_BACKGROUND.into(),
+        border: iced::Border {
+            color: border_color,
+            width: 1.0,
+            radius: style::INPUT_RADIUS.into(),
+        },
+        icon: style::MUTED_COLOR,
+        placeholder: style::MUTED_COLOR,
+        value: style::TEXT_COLOR,
+        selection: style::SELECTION_COLOR,
+    }
 }
 
 fn card_style(_theme: &iced::Theme) -> container::Style {

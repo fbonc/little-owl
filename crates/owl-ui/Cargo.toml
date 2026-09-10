@@ -6,7 +6,10 @@ edition = "2024"
 # iced is the cross-platform GPU renderer (one code path on all three platforms).
 # owl-types is the shared data vocabulary (leaf crate). The window + event source
 # live in the host (owl-app / the overlay_demo example), not here.
-# tokio feature enables the timer backend (iced::time::every) the demo streams on.
 [dependencies]
 iced = { version = "0.14.0", features = ["tokio"] }
 owl-types = { path = "../owl-types" }
+
+# The demo host only: tokio::time::sleep paces the mocked answer stream.
+[dev-dependencies]
+tokio = { version = "1", features = ["time"] }
