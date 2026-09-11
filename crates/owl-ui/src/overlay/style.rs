@@ -81,12 +81,15 @@ pub const LOGO_SIZE: f32 = 40.0;
 pub const HEADER_SPACING: f32 = 10.0;
 pub const SCROLLBAR_WIDTH: f32 = 6.0;
 pub const SCROLL_GUTTER: f32 = 14.0;
+pub const INPUT_ACTION_SPACING: f32 = 0.0;
 
 pub const TARGET_SIZE: f32 = 16.0;
 pub const INPUT_SIZE: f32 = 16.0;
 pub const ANSWER_SIZE: f32 = 15.0;
 pub const ERROR_SIZE: f32 = 14.0;
 pub const SEND_SIZE: f32 = 24.0;
+pub const SEND_BUTTON_SIZE: f32 = 36.0;
+pub const SEND_BUTTON_INSET: f32 = 4.0;
 
 pub const PLACEHOLDERS: [&str; 7] = [
     "Hoot away…",

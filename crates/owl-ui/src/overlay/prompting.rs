@@ -73,13 +73,20 @@ impl Prompting {
             text("").into()
         };
 
-        let send = button(text(" ↵ ").size(style::SEND_SIZE))
+        let send_icon = container(text("↵").size(style::SEND_SIZE)).center(Fill);
+
+        let send = button(send_icon)
             .on_press(Message::SubmitRequested)
+            .width(style::SEND_BUTTON_SIZE)
+            .height(style::SEND_BUTTON_SIZE)
+            .padding(0)
             .style(style::send_button);
+
+        let send = container(send).padding(style::SEND_BUTTON_INSET);
 
         container(
             row![stack![field, placeholder], send]
-                .spacing(style::HEADER_SPACING)
+                .spacing(style::INPUT_ACTION_SPACING)
                 .align_y(Center),
         )
         .style(move |theme| style::input_box(theme, self.input_focused))
