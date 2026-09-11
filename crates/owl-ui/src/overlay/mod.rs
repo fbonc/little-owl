@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
-use owl_types::{Target, UiEvent};
+use owl_types::{CoreMessage, Target};
 
 mod answering;
 pub mod prompting;
@@ -69,13 +69,13 @@ impl Overlay {
         Self::default()
     }
 
-    pub fn apply(&mut self, event: UiEvent) {
-        match event {
-            UiEvent::Show => self.visible = true,
-            UiEvent::Target(target) => self.target = Some(target),
-            UiEvent::Token(token) => self.answer.push_str(&token),
-            UiEvent::Done => self.done = true,
-            UiEvent::Error(error) => self.error = Some(error),
+    pub fn apply(&mut self, message: CoreMessage) {
+        match message {
+            CoreMessage::Show => self.visible = true,
+            CoreMessage::Target(target) => self.target = Some(target),
+            CoreMessage::Token(token) => self.answer.push_str(&token),
+            CoreMessage::Done => self.done = true,
+            CoreMessage::Error(error) => self.error = Some(error),
         }
     }
 
@@ -196,8 +196,8 @@ mod tests {
     #[test]
     fn empty_prompt_is_the_default_action() {
         let mut overlay = Overlay::new();
-        overlay.apply(UiEvent::Show);
-        overlay.apply(UiEvent::Target(Target::Text(TextCapture {
+        overlay.apply(CoreMessage::Show);
+        overlay.apply(CoreMessage::Target(Target::Text(TextCapture {
             text: "epistemic uncertainty".into(),
             method: TextCaptureMethod::Accessibility,
         })));
@@ -255,9 +255,9 @@ mod tests {
     #[test]
     fn tokens_accumulate_into_the_answer() {
         let mut overlay = Overlay::new();
-        overlay.apply(UiEvent::Token("un".into()));
-        overlay.apply(UiEvent::Token("certainty".into()));
-        overlay.apply(UiEvent::Done);
+        overlay.apply(CoreMessage::Token("un".into()));
+        overlay.apply(CoreMessage::Token("certainty".into()));
+        overlay.apply(CoreMessage::Done);
 
         assert_eq!(overlay.answer, "uncertainty");
         assert!(overlay.done);

@@ -1,6 +1,6 @@
 //! Throwaway host for the overlay, wired like the real app will be. Two channels
 //! bridge the mock backend and the UI, exactly as owl-core will: core -> ui carries
-//! UiEvents (a stream the subscription drains and folds via `apply`), ui -> core
+//! CoreMessages (a stream the subscription drains and folds via `apply`), ui -> core
 //! carries the submitted ask. Delete this once owl-app hosts owl_ui for real.
 //!
 //!   cargo run -p owl-ui --example overlay_demo
@@ -15,7 +15,7 @@ use tokio::time::sleep;
 
 use owl_types::{TextCapture, TextCaptureMethod};
 use owl_ui::overlay;
-use owl_ui::{Overlay, OverlayOutput, Submit, Target, UiEvent};
+use owl_ui::{CoreMessage, Overlay, OverlayOutput, Submit, Target};
 
 const WINDOW_WIDTH: f32 = 500.0;
 const MIN_WINDOW_WIDTH: f32 = 225.0;
@@ -37,7 +37,7 @@ enum Message {
     WindowOpened(Option<window::Id>),
     DragWindow,
     Ready(mpsc::Sender<Submit>),
-    Core(UiEvent),
+    Core(CoreMessage),
     Overlay(overlay::Message),
     CheckPromptInputFocus,
 }
@@ -93,9 +93,9 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
             Task::none()
         }
         // No resizing while text streams — the answer scrolls inside a fixed panel.
-        Message::Core(event) => {
-            let should_show = matches!(event, UiEvent::Show);
-            state.overlay.apply(event);
+        Message::Core(core_message) => {
+            let should_show = matches!(core_message, CoreMessage::Show);
+            state.overlay.apply(core_message);
 
             match (should_show, state.window) {
                 (true, Some(id)) => {
@@ -174,14 +174,14 @@ fn mock_core() -> impl Stream<Item = Message> {
         let (to_core, mut asks) = mpsc::channel::<Submit>(1);
         let _ = to_ui.send(Message::Ready(to_core)).await;
 
-        let _ = to_ui.send(Message::Core(UiEvent::Show)).await;
+        let _ = to_ui.send(Message::Core(CoreMessage::Show)).await;
         let _ = to_ui
-            .send(Message::Core(UiEvent::Target(sample_target())))
+            .send(Message::Core(CoreMessage::Target(sample_target())))
             .await;
 
         while let Some(submit) = asks.next().await {
-            for event in answer_events(submit.prompt.as_deref()) {
-                let _ = to_ui.send(Message::Core(event)).await;
+            for core_message in answer_events(submit.prompt.as_deref()) {
+                let _ = to_ui.send(Message::Core(core_message)).await;
                 sleep(Duration::from_millis(55)).await;
             }
         }
@@ -275,15 +275,15 @@ What parts of the text should I pay attention to right now?
 It uses the answer to build richer representations of the text and, in a language model, predict what should come next.
 ";
 
-fn answer_events(ask: Option<&str>) -> Vec<UiEvent> {
+fn answer_events(ask: Option<&str>) -> Vec<CoreMessage> {
     let body = match ask {
         Some(ask) => format!("You asked: {ask}. Here is a mocked streamed reply."),
         None => NONE_ANSWER.to_string(),
     };
-    let mut events: Vec<UiEvent> = body
+    let mut events: Vec<CoreMessage> = body
         .split_inclusive(' ')
-        .map(|token| UiEvent::Token(token.to_string()))
+        .map(|token| CoreMessage::Token(token.to_string()))
         .collect();
-    events.push(UiEvent::Done);
+    events.push(CoreMessage::Done);
     events
 }
