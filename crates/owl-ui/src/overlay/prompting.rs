@@ -54,16 +54,22 @@ impl Prompting {
             .id(self.input_id.clone());
 
         let placeholder: Element<'_, Message> = if self.prompt_value.is_empty() {
+            let hint = container(row![
+                space().width(Fill),
+                text(style::HINT_TEXT)
+                    .size(style::HINT_SIZE)
+                    .wrapping(text::Wrapping::None)
+                    .color(style::HINT_COLOR),
+            ])
+            .width(Fill)
+            .clip(true);
+
             container(
                 row![
                     text(self.placeholder)
                         .size(style::INPUT_SIZE)
                         .color(style::MUTED_COLOR),
-                    space().width(Fill),
-                    text(style::HINT_TEXT)
-                        .size(style::HINT_SIZE)
-                        .wrapping(text::Wrapping::None)
-                        .color(style::HINT_COLOR),
+                    hint,
                 ]
                 .spacing(style::HINT_SPACING)
                 .align_y(Center),
