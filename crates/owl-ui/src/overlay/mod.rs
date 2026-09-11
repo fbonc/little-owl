@@ -16,7 +16,6 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 #[derive(Debug, Clone)]
 pub enum Message {
     Prompt(prompt::Message),
-    Submit,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,13 +77,13 @@ impl Overlay {
 
     pub fn update(&mut self, message: Message) -> Option<Event> {
         match message {
+            Message::Prompt(prompt::Message::SubmitRequested) => {
+                self.phase = Phase::Answering;
+                Some(Event::Submitted(self.commit()))
+            }
             Message::Prompt(message) => {
                 self.prompt.update(message);
                 None
-            }
-            Message::Submit => {
-                self.phase = Phase::Answering;
-                Some(Event::Submitted(self.commit()))
             }
         }
     }
@@ -95,10 +94,7 @@ impl Overlay {
 
     pub fn view(&self) -> Element<'_, Message> {
         let content = match self.phase {
-            Phase::Asking => self.prompt.view().map(|message| match message {
-                prompt::Message::Submit => Message::Submit,
-                message => Message::Prompt(message),
-            }),
+            Phase::Asking => self.prompt.view().map(Message::Prompt),
             Phase::Answering => answer::view(&self.answer, self.error.as_deref()),
         };
 
@@ -112,7 +108,7 @@ impl Overlay {
 
     fn commit(&self) -> Submit {
         let prompt = (!self.prompt.value().is_empty()).then(|| self.prompt.value().to_owned());
-        Submit { prompt: prompt }
+        Submit { prompt }
     }
 }
 
@@ -164,7 +160,7 @@ mod tests {
         })));
 
         assert_eq!(
-            overlay.update(Message::Submit),
+            overlay.update(Message::Prompt(prompt::Message::SubmitRequested)),
             Some(Event::Submitted(Submit { prompt: None }))
         );
         assert!(overlay.visible);
@@ -173,12 +169,12 @@ mod tests {
     #[test]
     fn typed_text_becomes_the_ask() {
         let mut overlay = Overlay::new();
-        overlay.update(Message::Prompt(prompt::Message::Changed(
+        overlay.update(Message::Prompt(prompt::Message::InputChanged(
             "in one sentence".into(),
         )));
 
         assert_eq!(
-            overlay.update(Message::Submit),
+            overlay.update(Message::Prompt(prompt::Message::SubmitRequested)),
             Some(Event::Submitted(Submit {
                 prompt: Some("in one sentence".into()),
             }))
@@ -190,7 +186,11 @@ mod tests {
         let mut overlay = Overlay::new();
         assert_eq!(overlay.phase, Phase::Asking);
 
-        assert!(overlay.update(Message::Submit).is_some());
+        assert!(
+            overlay
+                .update(Message::Prompt(prompt::Message::SubmitRequested))
+                .is_some()
+        );
 
         assert_eq!(overlay.phase, Phase::Answering);
     }
@@ -201,7 +201,9 @@ mod tests {
 
         assert!(
             overlay
-                .update(Message::Prompt(prompt::Message::Changed("why?".into())))
+                .update(Message::Prompt(prompt::Message::InputChanged(
+                    "why?".into()
+                )))
                 .is_none()
         );
         assert_eq!(overlay.phase, Phase::Asking);

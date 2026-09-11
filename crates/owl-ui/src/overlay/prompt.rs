@@ -13,9 +13,9 @@ pub struct Prompt {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Changed(String),
-    FocusChanged(bool),
-    Submit,
+    InputChanged(String),
+    InputFocusChanged(bool),
+    SubmitRequested,
 }
 
 impl Prompt {
@@ -30,9 +30,9 @@ impl Prompt {
 
     pub fn update(&mut self, message: Message) {
         match message {
-            Message::Changed(value) => self.value = value,
-            Message::FocusChanged(focused) => self.focused = focused,
-            Message::Submit => {}
+            Message::InputChanged(value) => self.value = value,
+            Message::InputFocusChanged(focused) => self.focused = focused,
+            Message::SubmitRequested => {}
         }
     }
 
@@ -41,13 +41,13 @@ impl Prompt {
     }
 
     pub fn check_focus(&self) -> Task<Message> {
-        iced::widget::operation::is_focused(self.id.clone()).map(Message::FocusChanged)
+        iced::widget::operation::is_focused(self.id.clone()).map(Message::InputFocusChanged)
     }
 
     pub fn view(&self) -> Element<'_, Message> {
         let field = text_input("", &self.value)
-            .on_input(Message::Changed)
-            .on_submit(Message::Submit)
+            .on_input(Message::InputChanged)
+            .on_submit(Message::SubmitRequested)
             .padding(style::INPUT_PADDING)
             .size(style::INPUT_SIZE)
             .style(style::input)
@@ -74,7 +74,7 @@ impl Prompt {
         };
 
         let send = button(text(" ↵ ").size(style::SEND_SIZE))
-            .on_press(Message::Submit)
+            .on_press(Message::SubmitRequested)
             .style(style::send_button);
 
         container(
@@ -95,7 +95,7 @@ mod tests {
     fn changed_updates_the_local_value() {
         let mut prompt = Prompt::new("Ask the owl…");
 
-        prompt.update(Message::Changed("what is this?".into()));
+        prompt.update(Message::InputChanged("what is this?".into()));
 
         assert_eq!(prompt.value(), "what is this?");
     }
@@ -103,9 +103,9 @@ mod tests {
     #[test]
     fn submit_does_not_mutate_local_state() {
         let mut prompt = Prompt::new("Ask the owl…");
-        prompt.update(Message::Changed("keep me".into()));
+        prompt.update(Message::InputChanged("keep me".into()));
 
-        prompt.update(Message::Submit);
+        prompt.update(Message::SubmitRequested);
 
         assert_eq!(prompt.value(), "keep me");
     }
