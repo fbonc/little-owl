@@ -15,7 +15,7 @@ use tokio::time::sleep;
 
 use owl_types::{TextCapture, TextCaptureMethod};
 use owl_ui::overlay;
-use owl_ui::{Event as OverlayEvent, Overlay, Submit, Target, UiEvent};
+use owl_ui::{Overlay, OverlayOutput, Submit, Target, UiEvent};
 
 const WINDOW_WIDTH: f32 = 640.0;
 // Compact while asking; a fixed roomier panel while answering. The window resizes
@@ -102,7 +102,7 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
             }
         }
         Message::Overlay(message) => match state.overlay.update(message) {
-            Some(OverlayEvent::Submitted(submit)) => {
+            Some(OverlayOutput::Submitted(submit)) => {
                 if let Some(sender) = &mut state.to_core {
                     let _ = sender.try_send(submit);
                 }
@@ -111,11 +111,16 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
                     None => Task::none(),
                 }
             }
-            Some(OverlayEvent::ReturnedToPrompting) => match state.window {
-                Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ASKING_HEIGHT)),
-                None => Task::none(),
+            Some(OverlayOutput::PhaseChanged(phase)) => match (phase, state.window) {
+                (owl_ui::Phase::Prompting, Some(id)) => {
+                    window::resize(id, iced::Size::new(WINDOW_WIDTH, ASKING_HEIGHT))
+                }
+                (owl_ui::Phase::Answering, Some(id)) => {
+                    window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWER_HEIGHT))
+                }
+                (_, None) => Task::none(),
             },
-            Some(OverlayEvent::Closed) => match state.window {
+            Some(OverlayOutput::Dismissed) => match state.window {
                 Some(id) => window::set_mode(id, window::Mode::Hidden),
                 None => Task::none(),
             },
@@ -150,7 +155,7 @@ fn subscription(_state: &Demo) -> Subscription<Message> {
                 Some(Message::CheckPromptInputFocus)
             }
             iced::Event::Window(window::Event::CloseRequested) => {
-                Some(Message::Overlay(overlay::Message::CloseRequested))
+                Some(Message::Overlay(overlay::Message::DismissRequested))
             }
 
             _ => None,

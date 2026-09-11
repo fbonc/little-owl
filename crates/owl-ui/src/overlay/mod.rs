@@ -17,14 +17,14 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 pub enum Message {
     Prompting(prompting::Message),
     BackRequested,
-    CloseRequested,
+    DismissRequested,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Event {
+pub enum Output {
     Submitted(Submit),
-    ReturnedToPrompting,
-    Closed,
+    PhaseChanged(Phase),
+    Dismissed,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,14 +79,14 @@ impl Overlay {
         }
     }
 
-    pub fn update(&mut self, message: Message) -> Option<Event> {
+    pub fn update(&mut self, message: Message) -> Option<Output> {
         match message {
             Message::Prompting(prompting::Message::SubmitRequested) => {
                 self.phase = Phase::Answering;
                 self.answer.clear();
                 self.done = false;
                 self.error = None;
-                Some(Event::Submitted(self.commit()))
+                Some(Output::Submitted(self.commit()))
             }
             Message::Prompting(message) => {
                 self.prompting.update(message);
@@ -94,11 +94,11 @@ impl Overlay {
             }
             Message::BackRequested => {
                 self.phase = Phase::Prompting;
-                Some(Event::ReturnedToPrompting)
+                Some(Output::PhaseChanged(Phase::Prompting))
             }
-            Message::CloseRequested => {
+            Message::DismissRequested => {
                 self.visible = false;
-                Some(Event::Closed)
+                Some(Output::Dismissed)
             }
         }
     }
@@ -155,7 +155,7 @@ fn header(overlay: &Overlay) -> Element<'_, Message> {
         actions = actions.push(header_button("←", Message::BackRequested));
     }
 
-    actions = actions.push(header_button("×", Message::CloseRequested));
+    actions = actions.push(header_button("×", Message::DismissRequested));
 
     header = header.push(space().width(Fill)).push(actions);
 
@@ -199,7 +199,7 @@ mod tests {
 
         assert_eq!(
             overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
-            Some(Event::Submitted(Submit { prompt: None }))
+            Some(Output::Submitted(Submit { prompt: None }))
         );
         assert!(overlay.visible);
     }
@@ -213,7 +213,7 @@ mod tests {
 
         assert_eq!(
             overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
-            Some(Event::Submitted(Submit {
+            Some(Output::Submitted(Submit {
                 prompt: Some("in one sentence".into()),
             }))
         );
@@ -265,7 +265,7 @@ mod tests {
 
         assert_eq!(
             overlay.update(Message::BackRequested),
-            Some(Event::ReturnedToPrompting)
+            Some(Output::PhaseChanged(Phase::Prompting))
         );
         assert_eq!(overlay.phase, Phase::Prompting);
     }
@@ -275,7 +275,10 @@ mod tests {
         let mut overlay = Overlay::new();
         overlay.visible = true;
 
-        assert_eq!(overlay.update(Message::CloseRequested), Some(Event::Closed));
+        assert_eq!(
+            overlay.update(Message::DismissRequested),
+            Some(Output::Dismissed)
+        );
         assert!(!overlay.visible);
     }
 
