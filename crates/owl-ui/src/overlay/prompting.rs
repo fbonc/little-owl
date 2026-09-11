@@ -62,6 +62,7 @@ impl Prompting {
                     space().width(Fill),
                     text(style::HINT_TEXT)
                         .size(style::HINT_SIZE)
+                        .wrapping(text::Wrapping::None)
                         .color(style::HINT_COLOR),
                 ]
                 .spacing(style::HINT_SPACING)

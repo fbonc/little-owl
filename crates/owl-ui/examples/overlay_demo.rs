@@ -18,9 +18,11 @@ use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Submit, Target, UiEvent};
 
 const WINDOW_WIDTH: f32 = 640.0;
+const MIN_WINDOW_WIDTH: f32 = 520.0;
 // Compact while asking; a fixed roomier panel while answering. The window resizes
 // once on submit and never during the stream, so the text just scrolls inside it.
 const ASKING_HEIGHT: f32 = 150.0;
+const MIN_WINDOW_HEIGHT: f32 = ASKING_HEIGHT;
 const ANSWER_HEIGHT: f32 = 360.0;
 
 struct Demo {
@@ -60,6 +62,7 @@ fn main() -> iced::Result {
     .title("little owl")
     .window(window::Settings {
         size: iced::Size::new(WINDOW_WIDTH, ASKING_HEIGHT),
+        min_size: Some(iced::Size::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)),
         position: window::Position::Centered,
         decorations: false,
         transparent: true,
