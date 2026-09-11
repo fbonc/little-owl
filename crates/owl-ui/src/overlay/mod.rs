@@ -113,12 +113,17 @@ impl Overlay {
             Phase::Answering => answering::view(&self.answer, self.error.as_deref()),
         };
 
-        container(column![header(self), content].spacing(style::CARD_SPACING))
-            .padding(style::CARD_PADDING)
-            .width(Fill)
-            .height(Fill)
-            .style(style::card)
-            .into()
+        container(
+            column![header(self), content]
+                .spacing(style::CARD_SPACING)
+                .width(Fill)
+                .height(Fill),
+        )
+        .padding(style::CARD_PADDING)
+        .width(Fill)
+        .height(Fill)
+        .style(style::card)
+        .into()
     }
 
     fn commit(&self) -> Submit {

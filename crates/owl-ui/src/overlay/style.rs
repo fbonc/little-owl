@@ -105,7 +105,7 @@ pub const PLACEHOLDERS: [&str; 7] = [
 ];
 pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
 
-pub const HINT_TEXT: &str = "Or just press Enter — I’ll it figure out";
+pub const HINT_TEXT: &str = "Or just press Enter — I’ll figure it out";
 pub const HINT_SIZE: f32 = 12.5;
 pub const HINT_SPACING: f32 = 8.0;
 pub const HINT_COLOR: Color = Color {

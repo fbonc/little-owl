@@ -19,6 +19,7 @@ pub(super) fn view<'a, Message: 'a>(
             .size(style::ANSWER_SIZE)
             .color(style::TEXT_COLOR),
     )
+    .width(iced::Fill)
     .padding(iced::Padding {
         top: 0.0,
         right: style::SCROLL_GUTTER,
@@ -27,6 +28,8 @@ pub(super) fn view<'a, Message: 'a>(
     });
 
     scrollable(answer)
+        .width(iced::Fill)
+        .height(iced::Fill)
         .direction(scrollable::Direction::Vertical(
             scrollable::Scrollbar::new()
                 .width(style::SCROLLBAR_WIDTH)
