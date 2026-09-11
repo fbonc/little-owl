@@ -5,8 +5,8 @@ use iced::{Center, Element, Fill, Task};
 
 use owl_types::{Target, UiEvent};
 
-mod answer;
-pub mod prompt;
+mod answering;
+pub mod prompting;
 mod style;
 
 static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
@@ -15,7 +15,7 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Prompt(prompt::Message),
+    Prompting(prompting::Message),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -31,7 +31,7 @@ pub struct Submit {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum Phase {
     #[default]
-    Asking,
+    Prompting,
     Answering,
 }
 
@@ -39,7 +39,7 @@ pub enum Phase {
 pub struct Overlay {
     pub visible: bool,
     pub target: Option<Target>,
-    prompt: prompt::Prompt,
+    prompting: prompting::Prompting,
     pub phase: Phase,
     pub answer: String,
     pub done: bool,
@@ -51,7 +51,7 @@ impl Default for Overlay {
         Self {
             visible: false,
             target: None,
-            prompt: prompt::Prompt::new(random_placeholder()),
+            prompting: prompting::Prompting::new(random_placeholder()),
             phase: Phase::default(),
             answer: String::new(),
             done: false,
@@ -77,25 +77,25 @@ impl Overlay {
 
     pub fn update(&mut self, message: Message) -> Option<Event> {
         match message {
-            Message::Prompt(prompt::Message::SubmitRequested) => {
+            Message::Prompting(prompting::Message::SubmitRequested) => {
                 self.phase = Phase::Answering;
                 Some(Event::Submitted(self.commit()))
             }
-            Message::Prompt(message) => {
-                self.prompt.update(message);
+            Message::Prompting(message) => {
+                self.prompting.update(message);
                 None
             }
         }
     }
 
-    pub fn check_prompt_focus(&self) -> Task<Message> {
-        self.prompt.check_focus().map(Message::Prompt)
+    pub fn check_prompt_input_focus(&self) -> Task<Message> {
+        self.prompting.check_focus().map(Message::Prompting)
     }
 
     pub fn view(&self) -> Element<'_, Message> {
         let content = match self.phase {
-            Phase::Asking => self.prompt.view().map(Message::Prompt),
-            Phase::Answering => answer::view(&self.answer, self.error.as_deref()),
+            Phase::Prompting => self.prompting.view().map(Message::Prompting),
+            Phase::Answering => answering::view(&self.answer, self.error.as_deref()),
         };
 
         container(column![header(self), content].spacing(style::CARD_SPACING))
@@ -107,7 +107,8 @@ impl Overlay {
     }
 
     fn commit(&self) -> Submit {
-        let prompt = (!self.prompt.value().is_empty()).then(|| self.prompt.value().to_owned());
+        let prompt = (!self.prompting.prompt_value().is_empty())
+            .then(|| self.prompting.prompt_value().to_owned());
         Submit { prompt }
     }
 }
@@ -160,7 +161,7 @@ mod tests {
         })));
 
         assert_eq!(
-            overlay.update(Message::Prompt(prompt::Message::SubmitRequested)),
+            overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
             Some(Event::Submitted(Submit { prompt: None }))
         );
         assert!(overlay.visible);
@@ -169,12 +170,12 @@ mod tests {
     #[test]
     fn typed_text_becomes_the_ask() {
         let mut overlay = Overlay::new();
-        overlay.update(Message::Prompt(prompt::Message::InputChanged(
+        overlay.update(Message::Prompting(prompting::Message::InputChanged(
             "in one sentence".into(),
         )));
 
         assert_eq!(
-            overlay.update(Message::Prompt(prompt::Message::SubmitRequested)),
+            overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
             Some(Event::Submitted(Submit {
                 prompt: Some("in one sentence".into()),
             }))
@@ -182,13 +183,13 @@ mod tests {
     }
 
     #[test]
-    fn submit_moves_from_asking_to_answering() {
+    fn submit_moves_from_prompting_to_answering() {
         let mut overlay = Overlay::new();
-        assert_eq!(overlay.phase, Phase::Asking);
+        assert_eq!(overlay.phase, Phase::Prompting);
 
         assert!(
             overlay
-                .update(Message::Prompt(prompt::Message::SubmitRequested))
+                .update(Message::Prompting(prompting::Message::SubmitRequested))
                 .is_some()
         );
 
@@ -196,17 +197,17 @@ mod tests {
     }
 
     #[test]
-    fn prompt_messages_stay_inside_the_overlay() {
+    fn prompting_messages_stay_inside_the_overlay() {
         let mut overlay = Overlay::new();
 
         assert!(
             overlay
-                .update(Message::Prompt(prompt::Message::InputChanged(
+                .update(Message::Prompting(prompting::Message::InputChanged(
                     "why?".into()
                 )))
                 .is_none()
         );
-        assert_eq!(overlay.phase, Phase::Asking);
+        assert_eq!(overlay.phase, Phase::Prompting);
     }
 
     #[test]

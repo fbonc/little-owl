@@ -4,10 +4,10 @@ use iced::{Center, Element, Fill, Task};
 use super::style;
 
 #[derive(Debug)]
-pub struct Prompt {
-    value: String,
-    id: Id,
-    focused: bool,
+pub struct Prompting {
+    prompt_value: String,
+    input_id: Id,
+    input_focused: bool,
     placeholder: &'static str,
 }
 
@@ -18,42 +18,42 @@ pub enum Message {
     SubmitRequested,
 }
 
-impl Prompt {
+impl Prompting {
     pub fn new(placeholder: &'static str) -> Self {
         Self {
-            value: String::new(),
-            id: Id::unique(),
-            focused: false,
+            prompt_value: String::new(),
+            input_id: Id::unique(),
+            input_focused: false,
             placeholder,
         }
     }
 
     pub fn update(&mut self, message: Message) {
         match message {
-            Message::InputChanged(value) => self.value = value,
-            Message::InputFocusChanged(focused) => self.focused = focused,
+            Message::InputChanged(value) => self.prompt_value = value,
+            Message::InputFocusChanged(focused) => self.input_focused = focused,
             Message::SubmitRequested => {}
         }
     }
 
-    pub fn value(&self) -> &str {
-        &self.value
+    pub fn prompt_value(&self) -> &str {
+        &self.prompt_value
     }
 
     pub fn check_focus(&self) -> Task<Message> {
-        iced::widget::operation::is_focused(self.id.clone()).map(Message::InputFocusChanged)
+        iced::widget::operation::is_focused(self.input_id.clone()).map(Message::InputFocusChanged)
     }
 
     pub fn view(&self) -> Element<'_, Message> {
-        let field = text_input("", &self.value)
+        let field = text_input("", &self.prompt_value)
             .on_input(Message::InputChanged)
             .on_submit(Message::SubmitRequested)
             .padding(style::INPUT_PADDING)
             .size(style::INPUT_SIZE)
             .style(style::input)
-            .id(self.id.clone());
+            .id(self.input_id.clone());
 
-        let placeholder: Element<'_, Message> = if self.value.is_empty() {
+        let placeholder: Element<'_, Message> = if self.prompt_value.is_empty() {
             container(
                 row![
                     text(self.placeholder)
@@ -82,7 +82,7 @@ impl Prompt {
                 .spacing(style::HEADER_SPACING)
                 .align_y(Center),
         )
-        .style(move |theme| style::input_box(theme, self.focused))
+        .style(move |theme| style::input_box(theme, self.input_focused))
         .into()
     }
 }
@@ -93,20 +93,20 @@ mod tests {
 
     #[test]
     fn changed_updates_the_local_value() {
-        let mut prompt = Prompt::new("Ask the owl…");
+        let mut prompting = Prompting::new("Ask the owl…");
 
-        prompt.update(Message::InputChanged("what is this?".into()));
+        prompting.update(Message::InputChanged("what is this?".into()));
 
-        assert_eq!(prompt.value(), "what is this?");
+        assert_eq!(prompting.prompt_value(), "what is this?");
     }
 
     #[test]
     fn submit_does_not_mutate_local_state() {
-        let mut prompt = Prompt::new("Ask the owl…");
-        prompt.update(Message::InputChanged("keep me".into()));
+        let mut prompting = Prompting::new("Ask the owl…");
+        prompting.update(Message::InputChanged("keep me".into()));
 
-        prompt.update(Message::SubmitRequested);
+        prompting.update(Message::SubmitRequested);
 
-        assert_eq!(prompt.value(), "keep me");
+        assert_eq!(prompting.prompt_value(), "keep me");
     }
 }

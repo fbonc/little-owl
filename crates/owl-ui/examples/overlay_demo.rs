@@ -37,7 +37,7 @@ enum Message {
     Ready(mpsc::Sender<Submit>),
     Core(UiEvent),
     Overlay(overlay::Message),
-    CheckPromptFocus,
+    CheckPromptInputFocus,
 }
 
 fn main() -> iced::Result {
@@ -110,7 +110,10 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
                 _ => Task::none(),
             }
         }
-        Message::CheckPromptFocus => state.overlay.check_prompt_focus().map(Message::Overlay),
+        Message::CheckPromptInputFocus => state
+            .overlay
+            .check_prompt_input_focus()
+            .map(Message::Overlay),
     }
 }
 
@@ -127,7 +130,7 @@ fn subscription(_state: &Demo) -> Subscription<Message> {
         iced::event::listen_with(|event, _status, _window| match event {
             iced::Event::Mouse(iced::mouse::Event::ButtonPressed(_))
             | iced::Event::Keyboard(iced::keyboard::Event::KeyPressed { .. }) => {
-                Some(Message::CheckPromptFocus)
+                Some(Message::CheckPromptInputFocus)
             }
 
             _ => None,
