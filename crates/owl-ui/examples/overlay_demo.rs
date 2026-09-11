@@ -17,8 +17,8 @@ use owl_types::{TextCapture, TextCaptureMethod};
 use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Submit, Target, UiEvent};
 
-const WINDOW_WIDTH: f32 = 640.0;
-const MIN_WINDOW_WIDTH: f32 = 520.0;
+const WINDOW_WIDTH: f32 = 500.0;
+const MIN_WINDOW_WIDTH: f32 = 225.0;
 // Compact while asking; a fixed roomier panel while answering. The window resizes
 // once on submit and never during the stream, so the text just scrolls inside it.
 const ASKING_HEIGHT: f32 = 150.0;
