@@ -64,6 +64,8 @@ fn main() -> iced::Result {
         decorations: false,
         transparent: true,
         resizable: true,
+        level: window::Level::AlwaysOnTop,
+        exit_on_close_request: false,
         ..Default::default()
     })
     .style(|_state: &Demo, _theme: &iced::Theme| iced::theme::Style {
@@ -89,31 +91,46 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
         }
         // No resizing while text streams — the answer scrolls inside a fixed panel.
         Message::Core(event) => {
+            let should_show = matches!(event, UiEvent::Show);
             state.overlay.apply(event);
-            Task::none()
-        }
-        Message::Overlay(message) => {
-            let submitted = match state.overlay.update(message) {
-                Some(OverlayEvent::Submitted(submit)) => {
-                    if let Some(sender) = &mut state.to_core {
-                        let _ = sender.try_send(submit);
-                    }
-                    true
-                }
-                None => false,
-            };
-            // The single resize: grow to the answer panel when the user commits.
-            match (submitted, state.window) {
+
+            match (should_show, state.window) {
                 (true, Some(id)) => {
-                    window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWER_HEIGHT))
+                    window::set_mode(id, window::Mode::Windowed).chain(window::gain_focus(id))
                 }
                 _ => Task::none(),
             }
         }
-        Message::CheckPromptInputFocus => state
-            .overlay
-            .check_prompt_input_focus()
-            .map(Message::Overlay),
+        Message::Overlay(message) => match state.overlay.update(message) {
+            Some(OverlayEvent::Submitted(submit)) => {
+                if let Some(sender) = &mut state.to_core {
+                    let _ = sender.try_send(submit);
+                }
+                match state.window {
+                    Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWER_HEIGHT)),
+                    None => Task::none(),
+                }
+            }
+            Some(OverlayEvent::ReturnedToPrompting) => match state.window {
+                Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ASKING_HEIGHT)),
+                None => Task::none(),
+            },
+            Some(OverlayEvent::Closed) => match state.window {
+                Some(id) => window::set_mode(id, window::Mode::Hidden),
+                None => Task::none(),
+            },
+            None => Task::none(),
+        },
+        Message::CheckPromptInputFocus => {
+            if state.overlay.visible && state.overlay.phase == owl_ui::Phase::Prompting {
+                state
+                    .overlay
+                    .check_prompt_input_focus()
+                    .map(Message::Overlay)
+            } else {
+                Task::none()
+            }
+        }
     }
 }
 
@@ -131,6 +148,9 @@ fn subscription(_state: &Demo) -> Subscription<Message> {
             iced::Event::Mouse(iced::mouse::Event::ButtonPressed(_))
             | iced::Event::Keyboard(iced::keyboard::Event::KeyPressed { .. }) => {
                 Some(Message::CheckPromptInputFocus)
+            }
+            iced::Event::Window(window::Event::CloseRequested) => {
+                Some(Message::Overlay(overlay::Message::CloseRequested))
             }
 
             _ => None,

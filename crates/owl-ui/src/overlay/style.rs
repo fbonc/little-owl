@@ -79,6 +79,9 @@ pub const INPUT_PADDING: f32 = 12.0;
 pub const INPUT_RADIUS: f32 = 10.0;
 pub const LOGO_SIZE: f32 = 40.0;
 pub const HEADER_SPACING: f32 = 10.0;
+pub const HEADER_ACTION_SPACING: f32 = 4.0;
+pub const HEADER_ACTION_SIZE: f32 = 28.0;
+pub const HEADER_ACTION_ICON_SIZE: f32 = 18.0;
 pub const SCROLLBAR_WIDTH: f32 = 6.0;
 pub const SCROLL_GUTTER: f32 = 14.0;
 pub const INPUT_ACTION_SPACING: f32 = 0.0;
@@ -169,6 +172,24 @@ pub fn send_button(_theme: &Theme, status: button::Status) -> button::Style {
         text_color: BACKGROUND_COLOR,
         border: Border {
             radius: INPUT_RADIUS.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+pub fn header_button(_theme: &Theme, status: button::Status) -> button::Style {
+    let (background, text_color) = match status {
+        button::Status::Hovered => (Some(INPUT_BACKGROUND.into()), TEXT_COLOR),
+        button::Status::Pressed => (Some(BORDER_COLOR.into()), TEXT_COLOR),
+        _ => (None, MUTED_COLOR),
+    };
+
+    button::Style {
+        background,
+        text_color,
+        border: Border {
+            radius: 6.0.into(),
             ..Default::default()
         },
         ..Default::default()

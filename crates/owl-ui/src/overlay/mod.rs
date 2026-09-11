@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use iced::widget::{column, container, image, row, text};
+use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
 use owl_types::{Target, UiEvent};
@@ -16,11 +16,15 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 #[derive(Debug, Clone)]
 pub enum Message {
     Prompting(prompting::Message),
+    BackRequested,
+    CloseRequested,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
     Submitted(Submit),
+    ReturnedToPrompting,
+    Closed,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,11 +83,22 @@ impl Overlay {
         match message {
             Message::Prompting(prompting::Message::SubmitRequested) => {
                 self.phase = Phase::Answering;
+                self.answer.clear();
+                self.done = false;
+                self.error = None;
                 Some(Event::Submitted(self.commit()))
             }
             Message::Prompting(message) => {
                 self.prompting.update(message);
                 None
+            }
+            Message::BackRequested => {
+                self.phase = Phase::Prompting;
+                Some(Event::ReturnedToPrompting)
+            }
+            Message::CloseRequested => {
+                self.visible = false;
+                Some(Event::Closed)
             }
         }
     }
@@ -134,7 +149,29 @@ fn header(overlay: &Overlay) -> Element<'_, Message> {
         );
     }
 
+    let mut actions = row![].spacing(style::HEADER_ACTION_SPACING);
+
+    if overlay.phase == Phase::Answering {
+        actions = actions.push(header_button("←", Message::BackRequested));
+    }
+
+    actions = actions.push(header_button("×", Message::CloseRequested));
+
+    header = header.push(space().width(Fill)).push(actions);
+
     header.into()
+}
+
+fn header_button(label: &'static str, message: Message) -> Element<'static, Message> {
+    let icon = container(text(label).size(style::HEADER_ACTION_ICON_SIZE)).center(Fill);
+
+    button(icon)
+        .on_press(message)
+        .width(style::HEADER_ACTION_SIZE)
+        .height(style::HEADER_ACTION_SIZE)
+        .padding(0)
+        .style(style::header_button)
+        .into()
 }
 
 fn random_placeholder() -> &'static str {
@@ -219,5 +256,40 @@ mod tests {
 
         assert_eq!(overlay.answer, "uncertainty");
         assert!(overlay.done);
+    }
+
+    #[test]
+    fn back_returns_to_prompting() {
+        let mut overlay = Overlay::new();
+        overlay.phase = Phase::Answering;
+
+        assert_eq!(
+            overlay.update(Message::BackRequested),
+            Some(Event::ReturnedToPrompting)
+        );
+        assert_eq!(overlay.phase, Phase::Prompting);
+    }
+
+    #[test]
+    fn close_hides_the_overlay() {
+        let mut overlay = Overlay::new();
+        overlay.visible = true;
+
+        assert_eq!(overlay.update(Message::CloseRequested), Some(Event::Closed));
+        assert!(!overlay.visible);
+    }
+
+    #[test]
+    fn submitting_clears_the_previous_response() {
+        let mut overlay = Overlay::new();
+        overlay.answer = "old answer".into();
+        overlay.done = true;
+        overlay.error = Some("old error".into());
+
+        overlay.update(Message::Prompting(prompting::Message::SubmitRequested));
+
+        assert!(overlay.answer.is_empty());
+        assert!(!overlay.done);
+        assert!(overlay.error.is_none());
     }
 }
