@@ -14,7 +14,8 @@ use iced::{Element, Subscription, Task, Theme, window};
 use tokio::time::sleep;
 
 use owl_types::{TextCapture, TextCaptureMethod};
-use owl_ui::{Overlay, Submit, Target, UiEvent, ViewMessage};
+use owl_ui::overlay;
+use owl_ui::{Event as OverlayEvent, Overlay, Submit, Target, UiEvent};
 
 const WINDOW_WIDTH: f32 = 640.0;
 // Compact while asking; a fixed roomier panel while answering. The window resizes
@@ -35,8 +36,8 @@ enum Message {
     DragWindow,
     Ready(mpsc::Sender<Submit>),
     Core(UiEvent),
-    View(ViewMessage),
-    CheckInputFocus
+    Overlay(overlay::Message),
+    CheckPromptFocus,
 }
 
 fn main() -> iced::Result {
@@ -91,14 +92,15 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
             state.overlay.apply(event);
             Task::none()
         }
-        Message::View(view_message) => {
-            let submitted = if let Some(submit) = state.overlay.on_view_message(view_message) {
-                if let Some(sender) = &mut state.to_core {
-                    let _ = sender.try_send(submit);
+        Message::Overlay(message) => {
+            let submitted = match state.overlay.update(message) {
+                Some(OverlayEvent::Submitted(submit)) => {
+                    if let Some(sender) = &mut state.to_core {
+                        let _ = sender.try_send(submit);
+                    }
+                    true
                 }
-                true
-            } else {
-                false
+                None => false,
             };
             // The single resize: grow to the answer panel when the user commits.
             match (submitted, state.window) {
@@ -108,18 +110,13 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
                 _ => Task::none(),
             }
         }
-        Message::CheckInputFocus => {
-            state
-            .overlay
-            .check_input_focus()
-            .map(Message::View)
-        }
+        Message::CheckPromptFocus => state.overlay.check_prompt_focus().map(Message::Overlay),
     }
 }
 
 fn view(state: &Demo) -> Element<'_, Message> {
     // The whole panel is a drag handle (borderless: no title bar to grab).
-    mouse_area(owl_ui::view(&state.overlay).map(Message::View))
+    mouse_area(owl_ui::view(&state.overlay).map(Message::Overlay))
         .on_press(Message::DragWindow)
         .into()
 }
@@ -127,18 +124,13 @@ fn view(state: &Demo) -> Element<'_, Message> {
 fn subscription(_state: &Demo) -> Subscription<Message> {
     Subscription::batch([
         Subscription::run(mock_core),
-
-        iced::event::listen_with(|event, _status, _window| {
-            match event {
-                iced::Event::Mouse(
-                    iced::mouse::Event::ButtonPressed(_)
-                )
-                | iced::Event::Keyboard(
-                    iced::keyboard::Event::KeyPressed { .. }
-                ) => Some(Message::CheckInputFocus),
-
-                _ => None,
+        iced::event::listen_with(|event, _status, _window| match event {
+            iced::Event::Mouse(iced::mouse::Event::ButtonPressed(_))
+            | iced::Event::Keyboard(iced::keyboard::Event::KeyPressed { .. }) => {
+                Some(Message::CheckPromptFocus)
             }
+
+            _ => None,
         }),
     ])
 }
@@ -157,7 +149,7 @@ fn mock_core() -> impl Stream<Item = Message> {
             .await;
 
         while let Some(submit) = asks.next().await {
-            for event in answer_events(submit.ask.as_deref()) {
+            for event in answer_events(submit.prompt.as_deref()) {
                 let _ = to_ui.send(Message::Core(event)).await;
                 sleep(Duration::from_millis(55)).await;
             }

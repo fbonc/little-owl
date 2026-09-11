@@ -1,0 +1,190 @@
+use iced::border::Radius;
+use iced::widget::{button, container, scrollable, text_input};
+use iced::{Background, Border, Color, Shadow, Theme};
+
+pub const TEXT_COLOR: Color = Color {
+    r: 0.95,
+    g: 0.88,
+    b: 0.77,
+    a: 1.0,
+};
+pub const MUTED_COLOR: Color = Color {
+    r: 0.72,
+    g: 0.60,
+    b: 0.45,
+    a: 1.0,
+};
+pub const DANGER_COLOR: Color = Color {
+    r: 0.90,
+    g: 0.44,
+    b: 0.38,
+    a: 1.0,
+};
+pub const ACCENT_COLOR: Color = Color {
+    r: 0.93,
+    g: 0.70,
+    b: 0.29,
+    a: 1.0,
+};
+pub const BACKGROUND_COLOR: Color = Color {
+    r: 0.17,
+    g: 0.095,
+    b: 0.078,
+    a: 1.0,
+};
+pub const INPUT_BACKGROUND: Color = Color {
+    r: 0.24,
+    g: 0.15,
+    b: 0.12,
+    a: 1.0,
+};
+pub const INPUT_BORDER_COLOR: Color = Color {
+    r: 0.72,
+    g: 0.60,
+    b: 0.45,
+    a: 0.30,
+};
+pub const SELECTION_COLOR: Color = Color {
+    r: 0.93,
+    g: 0.70,
+    b: 0.29,
+    a: 0.35,
+};
+pub const SCROLLER_COLOR: Color = Color {
+    r: 0.72,
+    g: 0.60,
+    b: 0.45,
+    a: 0.55,
+};
+pub const BORDER_COLOR: Color = Color {
+    r: 0.93,
+    g: 0.70,
+    b: 0.29,
+    a: 0.22,
+};
+pub const BORDER_STYLE: Border = Border {
+    color: BORDER_COLOR,
+    width: 1.0,
+    radius: Radius {
+        top_left: 16.0,
+        top_right: 16.0,
+        bottom_right: 16.0,
+        bottom_left: 16.0,
+    },
+};
+
+pub const CARD_SPACING: f32 = 14.0;
+pub const CARD_PADDING: f32 = 22.0;
+pub const INPUT_PADDING: f32 = 12.0;
+pub const INPUT_RADIUS: f32 = 10.0;
+pub const LOGO_SIZE: f32 = 40.0;
+pub const HEADER_SPACING: f32 = 10.0;
+pub const SCROLLBAR_WIDTH: f32 = 6.0;
+pub const SCROLL_GUTTER: f32 = 14.0;
+
+pub const TARGET_SIZE: f32 = 16.0;
+pub const INPUT_SIZE: f32 = 16.0;
+pub const ANSWER_SIZE: f32 = 15.0;
+pub const ERROR_SIZE: f32 = 14.0;
+pub const SEND_SIZE: f32 = 24.0;
+
+pub const PLACEHOLDERS: [&str; 7] = [
+    "Hoot away…",
+    "Hoot’s on your mind?",
+    "Hoot me a question…",
+    "Ask the owl…",
+    "I’m owl ears…",
+    "Whooo’s curious?",
+    "Perch a thought…",
+];
+pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
+
+pub const HINT_TEXT: &str = "Or just press Enter — I’ll it figure out";
+pub const HINT_SIZE: f32 = 12.5;
+pub const HINT_SPACING: f32 = 8.0;
+pub const HINT_COLOR: Color = Color {
+    r: 0.56,
+    g: 0.47,
+    b: 0.39,
+    a: 1.0,
+};
+
+pub fn input_box(_theme: &Theme, focused: bool) -> container::Style {
+    let border_color = if focused {
+        ACCENT_COLOR
+    } else {
+        INPUT_BORDER_COLOR
+    };
+
+    container::Style {
+        background: Some(INPUT_BACKGROUND.into()),
+        border: Border {
+            color: border_color,
+            width: 1.0,
+            radius: INPUT_RADIUS.into(),
+        },
+        text_color: Some(Color::TRANSPARENT),
+        shadow: Shadow::default(),
+        snap: false,
+    }
+}
+
+pub fn input(_theme: &Theme, _status: text_input::Status) -> text_input::Style {
+    text_input::Style {
+        background: Background::Color(Color::TRANSPARENT),
+        border: Border {
+            color: Color::TRANSPARENT,
+            width: 0.0,
+            radius: 0.0.into(),
+        },
+        icon: MUTED_COLOR,
+        placeholder: MUTED_COLOR,
+        value: TEXT_COLOR,
+        selection: SELECTION_COLOR,
+    }
+}
+
+pub fn send_button(_theme: &Theme, status: button::Status) -> button::Style {
+    let background = match status {
+        button::Status::Hovered => Color {
+            r: 0.98,
+            g: 0.78,
+            b: 0.42,
+            a: 1.0,
+        },
+        button::Status::Pressed => Color {
+            r: 0.84,
+            g: 0.62,
+            b: 0.24,
+            a: 1.0,
+        },
+        _ => ACCENT_COLOR,
+    };
+
+    button::Style {
+        background: Some(background.into()),
+        text_color: BACKGROUND_COLOR,
+        border: Border {
+            radius: INPUT_RADIUS.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+pub fn card(_theme: &Theme) -> container::Style {
+    container::Style {
+        background: Some(BACKGROUND_COLOR.into()),
+        border: BORDER_STYLE,
+        text_color: Some(TEXT_COLOR),
+        ..Default::default()
+    }
+}
+
+pub fn scroll(theme: &Theme, status: scrollable::Status) -> scrollable::Style {
+    let mut base = scrollable::default(theme, status);
+    base.vertical_rail.background = None;
+    base.vertical_rail.border = Border::default();
+    base.vertical_rail.scroller.background = SCROLLER_COLOR.into();
+    base
+}
