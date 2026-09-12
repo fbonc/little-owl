@@ -1,6 +1,6 @@
 use iced::border::Radius;
 use iced::widget::{button, container, markdown, scrollable, text_input};
-use iced::{Background, Border, Color, Shadow, Theme};
+use iced::{Background, Border, Color, Font, Shadow, Theme};
 
 pub const TEXT_COLOR: Color = Color {
     r: 0.95,
@@ -105,6 +105,12 @@ pub const PLACEHOLDERS: [&str; 7] = [
 ];
 pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
 
+#[cfg(target_os = "macos")]
+// Cosmic Text resolves `.SF NS` bold to Menlo instead of the system bold face.
+const ANSWER_FONT: Font = Font::with_name("Helvetica Neue");
+#[cfg(not(target_os = "macos"))]
+const ANSWER_FONT: Font = Font::DEFAULT;
+
 pub const HINT_TEXT: &str = "Or just press Enter — I’ll figure it out";
 pub const HINT_SIZE: f32 = 12.5;
 pub const HINT_SPACING: f32 = 8.0;
@@ -207,6 +213,7 @@ pub fn card(_theme: &Theme) -> container::Style {
 
 pub fn answer_markdown() -> markdown::Style {
     let mut style = markdown::Style::from(Theme::Dark);
+    style.font = ANSWER_FONT;
     style.inline_code_highlight.background = INPUT_BACKGROUND.into();
     style.inline_code_color = TEXT_COLOR;
     style.link_color = ACCENT_COLOR;
