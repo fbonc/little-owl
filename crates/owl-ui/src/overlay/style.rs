@@ -84,6 +84,7 @@ pub const HEADER_ACTION_SIZE: f32 = 28.0;
 pub const HEADER_ACTION_ICON_SIZE: f32 = 18.0;
 pub const SCROLLBAR_WIDTH: f32 = 6.0;
 pub const SCROLL_GUTTER: f32 = 14.0;
+pub const MATH_BLOCK_PADDING: f32 = 8.0;
 pub const INPUT_ACTION_SPACING: f32 = 0.0;
 
 pub const TARGET_SIZE: f32 = 16.0;
@@ -218,6 +219,14 @@ pub fn answer_markdown() -> markdown::Style {
     style.inline_code_color = TEXT_COLOR;
     style.link_color = ACCENT_COLOR;
     style
+}
+
+pub fn math_color() -> iced_math::Color {
+    iced_math::Color::rgb(
+        (TEXT_COLOR.r * 255.0).round() as u8,
+        (TEXT_COLOR.g * 255.0).round() as u8,
+        (TEXT_COLOR.b * 255.0).round() as u8,
+    )
 }
 
 pub fn scroll(theme: &Theme, status: scrollable::Status) -> scrollable::Style {

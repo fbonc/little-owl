@@ -1,7 +1,7 @@
 use iced::widget::{container, markdown, scrollable, text};
 use iced::{Element, Fill};
 
-use super::style;
+use super::{latex, style};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -19,7 +19,7 @@ pub(super) struct Answering {
 impl Answering {
     pub fn push_token(&mut self, token: &str) {
         self.answer.push_str(token);
-        self.markdown.push_str(token);
+        self.markdown = markdown::Content::parse(&latex::normalize_delimiters(&self.answer));
     }
 
     pub fn finish(&mut self) {
@@ -54,13 +54,11 @@ impl Answering {
                 .into();
         }
 
-        let answer = container(
-            markdown::view(
-                self.markdown.items(),
-                markdown::Settings::with_text_size(style::ANSWER_SIZE, style::answer_markdown()),
-            )
-            .map(Message::LinkClicked),
-        )
+        let answer = container(markdown::view_with(
+            self.markdown.items(),
+            markdown::Settings::with_text_size(style::ANSWER_SIZE, style::answer_markdown()),
+            &latex::Viewer,
+        ))
         .width(Fill)
         .padding(iced::Padding {
             top: 0.0,

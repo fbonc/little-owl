@@ -6,6 +6,7 @@ use iced::{Center, Element, Fill, Task};
 use owl_types::{CoreMessage, Target};
 
 pub mod answering;
+mod latex;
 pub mod prompting;
 mod style;
 
