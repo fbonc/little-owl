@@ -3222,6 +3222,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "owl-app"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "owl-core",
+ "owl-ui",
+]
+
+[[package]]
 name = "owl-capture"
 version = "0.1.0"
 dependencies = [
@@ -3233,6 +3242,16 @@ dependencies = [
  "owl-types",
  "thiserror 2.0.20",
  "xcap",
+]
+
+[[package]]
+name = "owl-core"
+version = "0.1.0"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "owl-types",
+ "tokio",
 ]
 
 [[package]]
@@ -3252,7 +3271,6 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "owl-types",
- "tokio",
 ]
 
 [[package]]

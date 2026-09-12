@@ -70,3 +70,8 @@ pub enum CoreMessage {
     Done,
     Error(String),
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Submit {
+    pub prompt: Option<String>,
+}

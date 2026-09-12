@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
-use owl_types::{CoreMessage, Target};
+use owl_types::{CoreMessage, Submit, Target};
 
 pub mod answering;
 pub mod prompting;
@@ -27,11 +27,6 @@ pub enum Output {
     LinkClicked(String),
     PhaseChanged(Phase),
     Dismissed,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Submit {
-    pub prompt: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
