@@ -7,5 +7,6 @@ edition = "2024"
 # owl-types is the shared data vocabulary (leaf crate). The window + event source
 # live in the owl-app host, not here.
 [dependencies]
-iced = { version = "0.14.0", features = ["tokio", "image", "markdown"] }
+iced = { version = "0.14.0", features = ["tokio", "image", "markdown", "svg"] }
+iced_math = "0.5"
 owl-types = { path = "../owl-types" }
