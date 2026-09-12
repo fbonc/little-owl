@@ -1,5 +1,5 @@
 use iced::border::Radius;
-use iced::widget::{button, container, scrollable, text_input};
+use iced::widget::{button, container, markdown, scrollable, text_input};
 use iced::{Background, Border, Color, Shadow, Theme};
 
 pub const TEXT_COLOR: Color = Color {
@@ -203,6 +203,14 @@ pub fn card(_theme: &Theme) -> container::Style {
         text_color: Some(TEXT_COLOR),
         ..Default::default()
     }
+}
+
+pub fn answer_markdown() -> markdown::Style {
+    let mut style = markdown::Style::from(Theme::Dark);
+    style.inline_code_highlight.background = INPUT_BACKGROUND.into();
+    style.inline_code_color = TEXT_COLOR;
+    style.link_color = ACCENT_COLOR;
+    style
 }
 
 pub fn scroll(theme: &Theme, status: scrollable::Status) -> scrollable::Style {

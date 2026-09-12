@@ -5,7 +5,7 @@ use iced::{Center, Element, Fill, Task};
 
 use owl_types::{CoreMessage, Target};
 
-mod answering;
+pub mod answering;
 pub mod prompting;
 mod style;
 
@@ -16,6 +16,7 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 #[derive(Debug, Clone)]
 pub enum Message {
     Prompting(prompting::Message),
+    Answering(answering::Message),
     BackRequested,
     DismissRequested,
 }
@@ -23,6 +24,7 @@ pub enum Message {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
     Submitted(Submit),
+    LinkClicked(String),
     PhaseChanged(Phase),
     Dismissed,
 }
@@ -44,10 +46,8 @@ pub struct Overlay {
     pub visible: bool,
     pub target: Option<Target>,
     prompting: prompting::Prompting,
+    answering: answering::Answering,
     pub phase: Phase,
-    pub answer: String,
-    pub done: bool,
-    pub error: Option<String>,
 }
 
 impl Default for Overlay {
@@ -56,10 +56,8 @@ impl Default for Overlay {
             visible: false,
             target: None,
             prompting: prompting::Prompting::new(random_placeholder()),
+            answering: answering::Answering::default(),
             phase: Phase::default(),
-            answer: String::new(),
-            done: false,
-            error: None,
         }
     }
 }
@@ -73,9 +71,9 @@ impl Overlay {
         match message {
             CoreMessage::Show => self.visible = true,
             CoreMessage::Target(target) => self.target = Some(target),
-            CoreMessage::Token(token) => self.answer.push_str(&token),
-            CoreMessage::Done => self.done = true,
-            CoreMessage::Error(error) => self.error = Some(error),
+            CoreMessage::Token(token) => self.answering.push_token(&token),
+            CoreMessage::Done => self.answering.finish(),
+            CoreMessage::Error(error) => self.answering.fail(error),
         }
     }
 
@@ -83,14 +81,15 @@ impl Overlay {
         match message {
             Message::Prompting(prompting::Message::SubmitRequested) => {
                 self.phase = Phase::Answering;
-                self.answer.clear();
-                self.done = false;
-                self.error = None;
+                self.answering.reset();
                 Some(Output::Submitted(self.commit()))
             }
             Message::Prompting(message) => {
                 self.prompting.update(message);
                 None
+            }
+            Message::Answering(answering::Message::LinkClicked(uri)) => {
+                Some(Output::LinkClicked(uri))
             }
             Message::BackRequested => {
                 self.phase = Phase::Prompting;
@@ -107,10 +106,22 @@ impl Overlay {
         self.prompting.check_focus().map(Message::Prompting)
     }
 
+    pub fn answer(&self) -> &str {
+        self.answering.answer()
+    }
+
+    pub fn answer_done(&self) -> bool {
+        self.answering.is_done()
+    }
+
+    pub fn answer_error(&self) -> Option<&str> {
+        self.answering.error()
+    }
+
     pub fn view(&self) -> Element<'_, Message> {
         let content = match self.phase {
             Phase::Prompting => self.prompting.view().map(Message::Prompting),
-            Phase::Answering => answering::view(&self.answer, self.error.as_deref()),
+            Phase::Answering => self.answering.view().map(Message::Answering),
         };
 
         container(
@@ -253,14 +264,26 @@ mod tests {
     }
 
     #[test]
+    fn markdown_link_clicks_bubble_up_to_the_host() {
+        let mut overlay = Overlay::new();
+
+        assert_eq!(
+            overlay.update(Message::Answering(answering::Message::LinkClicked(
+                "https://example.com".into()
+            ))),
+            Some(Output::LinkClicked("https://example.com".into()))
+        );
+    }
+
+    #[test]
     fn tokens_accumulate_into_the_answer() {
         let mut overlay = Overlay::new();
         overlay.apply(CoreMessage::Token("un".into()));
         overlay.apply(CoreMessage::Token("certainty".into()));
         overlay.apply(CoreMessage::Done);
 
-        assert_eq!(overlay.answer, "uncertainty");
-        assert!(overlay.done);
+        assert_eq!(overlay.answer(), "uncertainty");
+        assert!(overlay.answer_done());
     }
 
     #[test]
@@ -290,14 +313,14 @@ mod tests {
     #[test]
     fn submitting_clears_the_previous_response() {
         let mut overlay = Overlay::new();
-        overlay.answer = "old answer".into();
-        overlay.done = true;
-        overlay.error = Some("old error".into());
+        overlay.answering.push_token("old answer");
+        overlay.answering.finish();
+        overlay.answering.fail("old error".into());
 
         overlay.update(Message::Prompting(prompting::Message::SubmitRequested));
 
-        assert!(overlay.answer.is_empty());
-        assert!(!overlay.done);
-        assert!(overlay.error.is_none());
+        assert!(overlay.answer().is_empty());
+        assert!(!overlay.answer_done());
+        assert!(overlay.answer_error().is_none());
     }
 }

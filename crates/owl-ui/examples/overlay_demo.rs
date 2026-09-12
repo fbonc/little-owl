@@ -114,6 +114,10 @@ fn update(state: &mut Demo, message: Message) -> Task<Message> {
                     None => Task::none(),
                 }
             }
+            Some(OverlayOutput::LinkClicked(uri)) => {
+                println!("link clicked: {uri}");
+                Task::none()
+            }
             Some(OverlayOutput::PhaseChanged(phase)) => match (phase, state.window) {
                 (owl_ui::Phase::Prompting, Some(id)) => {
                     window::resize(id, iced::Size::new(WINDOW_WIDTH, ASKING_HEIGHT))
