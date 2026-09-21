@@ -2,14 +2,14 @@ use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::{Submit, Target, TextCapture, TextCaptureMethod};
+use owl_types::{Target, TextCapture, TextCaptureMethod};
 use tokio::time::sleep;
 
 pub type Sender = mpsc::Sender<Input>;
 
 #[derive(Debug, Clone)]
 pub enum Input {
-    Submit(Submit),
+    Submit { prompt: Option<String> },
 }
 
 #[derive(Debug, Clone)]
@@ -28,8 +28,8 @@ pub fn start() -> (Sender, impl Stream<Item = Output>) {
         Output::TargetCaptured(sample_target()),
     ]);
     let responses = inputs.flat_map(|input| {
-        let Input::Submit(submit) = input;
-        stream::iter(answer_events(submit.prompt.as_deref()))
+        let Input::Submit { prompt } = input;
+        stream::iter(answer_events(prompt.as_deref()))
             .enumerate()
             .then(|(index, output)| async move {
                 if index > 0 {
