@@ -2,3 +2,4 @@
 .DS_Store
 .worktrees/
 *.kra~
+*.kra-autosave.kra
