@@ -63,7 +63,7 @@ pub struct Capture {
 }
 
 #[derive(Debug, Clone)]
-pub enum CoreMessage {
+pub enum UiUpdate {
     Show,
     Target(Target),
     Token(String),

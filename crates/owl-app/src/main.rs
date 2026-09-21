@@ -1,8 +1,8 @@
 use iced::widget::mouse_area;
 use iced::{Element, Subscription, Task, Theme, window};
-use owl_core::{Output as CoreOutput, SubmitSender};
+use owl_core::{CommandSender, CoreCommand, RuntimeEvent};
 use owl_ui::overlay;
-use owl_ui::{CoreMessage, Overlay, OverlayOutput};
+use owl_ui::{Overlay, OverlayOutput, UiUpdate};
 
 const WINDOW_WIDTH: f32 = 500.0;
 const MIN_WINDOW_WIDTH: f32 = 225.0;
@@ -12,7 +12,7 @@ const ANSWERING_HEIGHT: f32 = 360.0;
 
 struct App {
     overlay: Overlay,
-    to_core: Option<SubmitSender>,
+    to_core: Option<CommandSender>,
     window: Option<window::Id>,
 }
 
@@ -20,7 +20,7 @@ struct App {
 enum Message {
     WindowOpened(Option<window::Id>),
     DragWindow,
-    Core(CoreOutput),
+    Core(RuntimeEvent),
     Overlay(overlay::Message),
     CheckPromptInputFocus,
 }
@@ -71,13 +71,13 @@ fn update(state: &mut App, message: Message) -> Task<Message> {
             Some(id) => window::drag(id),
             None => Task::none(),
         },
-        Message::Core(CoreOutput::Ready(sender)) => {
+        Message::Core(RuntimeEvent::Ready(sender)) => {
             state.to_core = Some(sender);
             Task::none()
         }
-        Message::Core(CoreOutput::Ui(core_message)) => {
-            let should_show = matches!(core_message, CoreMessage::Show);
-            state.overlay.apply(core_message);
+        Message::Core(RuntimeEvent::Ui(update)) => {
+            let should_show = matches!(update, UiUpdate::Show);
+            state.overlay.apply(update);
 
             match (should_show, state.window) {
                 (true, Some(id)) => {
@@ -89,7 +89,7 @@ fn update(state: &mut App, message: Message) -> Task<Message> {
         Message::Overlay(message) => match state.overlay.update(message) {
             Some(OverlayOutput::Submitted(submit)) => {
                 if let Some(sender) = &mut state.to_core {
-                    let _ = sender.try_send(submit);
+                    let _ = sender.try_send(CoreCommand::Submit(submit));
                 }
                 match state.window {
                     Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWERING_HEIGHT)),

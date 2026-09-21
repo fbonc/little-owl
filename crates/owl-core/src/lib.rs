@@ -2,32 +2,38 @@ use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::{CoreMessage, Submit, Target, TextCapture, TextCaptureMethod};
+use owl_types::{Submit, Target, TextCapture, TextCaptureMethod, UiUpdate};
 use tokio::time::sleep;
 
-pub type SubmitSender = mpsc::Sender<Submit>;
+pub type CommandSender = mpsc::Sender<CoreCommand>;
 
 #[derive(Debug, Clone)]
-pub enum Output {
-    Ready(SubmitSender),
-    Ui(CoreMessage),
+pub enum CoreCommand {
+    Submit(Submit),
 }
 
-pub fn run() -> impl Stream<Item = Output> {
+#[derive(Debug, Clone)]
+pub enum RuntimeEvent {
+    Ready(CommandSender),
+    Ui(UiUpdate),
+}
+
+pub fn run() -> impl Stream<Item = RuntimeEvent> {
     let (to_core, submissions) = mpsc::channel(1);
     let startup = stream::iter([
-        Output::Ready(to_core),
-        Output::Ui(CoreMessage::Show),
-        Output::Ui(CoreMessage::Target(sample_target())),
+        RuntimeEvent::Ready(to_core),
+        RuntimeEvent::Ui(UiUpdate::Show),
+        RuntimeEvent::Ui(UiUpdate::Target(sample_target())),
     ]);
-    let responses = submissions.flat_map(|submit| {
+    let responses = submissions.flat_map(|command| {
+        let CoreCommand::Submit(submit) = command;
         stream::iter(answer_events(submit.prompt.as_deref()))
             .enumerate()
             .then(|(index, message)| async move {
                 if index > 0 {
                     sleep(Duration::from_millis(55)).await;
                 }
-                Output::Ui(message)
+                RuntimeEvent::Ui(message)
             })
     });
 
@@ -88,15 +94,15 @@ In short:
 > **Epistemic uncertainty describes what we do not know—and, importantly, what we may be able to learn.**
 ";
 
-fn answer_events(prompt: Option<&str>) -> Vec<CoreMessage> {
+fn answer_events(prompt: Option<&str>) -> Vec<UiUpdate> {
     let answer = match prompt {
         Some(prompt) => format!("You asked: {prompt}. Here is a mocked streamed reply."),
         None => DEFAULT_ANSWER.to_owned(),
     };
     let mut events = answer
         .split_inclusive(' ')
-        .map(|token| CoreMessage::Token(token.to_owned()))
+        .map(|token| UiUpdate::Token(token.to_owned()))
         .collect::<Vec<_>>();
-    events.push(CoreMessage::Done);
+    events.push(UiUpdate::Done);
     events
 }

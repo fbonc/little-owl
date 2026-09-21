@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
-use owl_types::{CoreMessage, Submit, Target};
+use owl_types::{Submit, Target, UiUpdate};
 
 pub mod answering;
 mod latex;
@@ -63,13 +63,13 @@ impl Overlay {
         Self::default()
     }
 
-    pub fn apply(&mut self, message: CoreMessage) {
-        match message {
-            CoreMessage::Show => self.visible = true,
-            CoreMessage::Target(target) => self.target = Some(target),
-            CoreMessage::Token(token) => self.answering.push_token(&token),
-            CoreMessage::Done => self.answering.finish(),
-            CoreMessage::Error(error) => self.answering.fail(error),
+    pub fn apply(&mut self, update: UiUpdate) {
+        match update {
+            UiUpdate::Show => self.visible = true,
+            UiUpdate::Target(target) => self.target = Some(target),
+            UiUpdate::Token(token) => self.answering.push_token(&token),
+            UiUpdate::Done => self.answering.finish(),
+            UiUpdate::Error(error) => self.answering.fail(error),
         }
     }
 
@@ -203,8 +203,8 @@ mod tests {
     #[test]
     fn empty_prompt_is_the_default_action() {
         let mut overlay = Overlay::new();
-        overlay.apply(CoreMessage::Show);
-        overlay.apply(CoreMessage::Target(Target::Text(TextCapture {
+        overlay.apply(UiUpdate::Show);
+        overlay.apply(UiUpdate::Target(Target::Text(TextCapture {
             text: "epistemic uncertainty".into(),
             method: TextCaptureMethod::Accessibility,
         })));
@@ -274,9 +274,9 @@ mod tests {
     #[test]
     fn tokens_accumulate_into_the_answer() {
         let mut overlay = Overlay::new();
-        overlay.apply(CoreMessage::Token("un".into()));
-        overlay.apply(CoreMessage::Token("certainty".into()));
-        overlay.apply(CoreMessage::Done);
+        overlay.apply(UiUpdate::Token("un".into()));
+        overlay.apply(UiUpdate::Token("certainty".into()));
+        overlay.apply(UiUpdate::Done);
 
         assert_eq!(overlay.answer(), "uncertainty");
         assert!(overlay.answer_done());
