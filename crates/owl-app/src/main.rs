@@ -1,6 +1,6 @@
 use iced::widget::mouse_area;
 use iced::{Element, Subscription, Task, Theme, window};
-use owl_core::{Event as CoreEvent, SubmitSender};
+use owl_core::{Output as CoreOutput, SubmitSender};
 use owl_ui::overlay;
 use owl_ui::{CoreMessage, Overlay, OverlayOutput};
 
@@ -20,7 +20,7 @@ struct App {
 enum Message {
     WindowOpened(Option<window::Id>),
     DragWindow,
-    Core(CoreEvent),
+    Core(CoreOutput),
     Overlay(overlay::Message),
     CheckPromptInputFocus,
 }
@@ -71,11 +71,11 @@ fn update(state: &mut App, message: Message) -> Task<Message> {
             Some(id) => window::drag(id),
             None => Task::none(),
         },
-        Message::Core(CoreEvent::Ready(sender)) => {
+        Message::Core(CoreOutput::Ready(sender)) => {
             state.to_core = Some(sender);
             Task::none()
         }
-        Message::Core(CoreEvent::Message(core_message)) => {
+        Message::Core(CoreOutput::Ui(core_message)) => {
             let should_show = matches!(core_message, CoreMessage::Show);
             state.overlay.apply(core_message);
 

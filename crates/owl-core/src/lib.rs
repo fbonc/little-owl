@@ -8,17 +8,17 @@ use tokio::time::sleep;
 pub type SubmitSender = mpsc::Sender<Submit>;
 
 #[derive(Debug, Clone)]
-pub enum Event {
+pub enum Output {
     Ready(SubmitSender),
-    Message(CoreMessage),
+    Ui(CoreMessage),
 }
 
-pub fn run() -> impl Stream<Item = Event> {
+pub fn run() -> impl Stream<Item = Output> {
     let (to_core, submissions) = mpsc::channel(1);
     let startup = stream::iter([
-        Event::Ready(to_core),
-        Event::Message(CoreMessage::Show),
-        Event::Message(CoreMessage::Target(sample_target())),
+        Output::Ready(to_core),
+        Output::Ui(CoreMessage::Show),
+        Output::Ui(CoreMessage::Target(sample_target())),
     ]);
     let responses = submissions.flat_map(|submit| {
         stream::iter(answer_events(submit.prompt.as_deref()))
@@ -27,7 +27,7 @@ pub fn run() -> impl Stream<Item = Event> {
                 if index > 0 {
                     sleep(Duration::from_millis(55)).await;
                 }
-                Event::Message(message)
+                Output::Ui(message)
             })
     });
 
