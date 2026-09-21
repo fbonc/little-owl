@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
-use owl_types::{Submit, Target, UiUpdate};
+use owl_types::{Submit, Target};
 
 pub mod answering;
 mod latex;
@@ -15,9 +15,14 @@ static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
 });
 
 #[derive(Debug, Clone)]
-pub enum Message {
-    Prompting(prompting::Message),
-    Answering(answering::Message),
+pub enum Input {
+    Prompting(prompting::Input),
+    Answering(answering::Input),
+    Show,
+    SetTarget(Target),
+    AppendAnswer(String),
+    FinishAnswer,
+    FailAnswer(String),
     BackRequested,
     DismissRequested,
 }
@@ -63,43 +68,51 @@ impl Overlay {
         Self::default()
     }
 
-    pub fn apply(&mut self, update: UiUpdate) {
-        match update {
-            UiUpdate::Show => self.visible = true,
-            UiUpdate::Target(target) => self.target = Some(target),
-            UiUpdate::Token(token) => self.answering.push_token(&token),
-            UiUpdate::Done => self.answering.finish(),
-            UiUpdate::Error(error) => self.answering.fail(error),
-        }
-    }
-
-    pub fn update(&mut self, message: Message) -> Option<Output> {
-        match message {
-            Message::Prompting(prompting::Message::SubmitRequested) => {
+    pub fn update(&mut self, input: Input) -> Option<Output> {
+        match input {
+            Input::Prompting(prompting::Input::SubmitRequested) => {
                 self.phase = Phase::Answering;
                 self.answering.reset();
                 Some(Output::Submitted(self.commit()))
             }
-            Message::Prompting(message) => {
-                self.prompting.update(message);
+            Input::Prompting(input) => {
+                self.prompting.update(input);
                 None
             }
-            Message::Answering(answering::Message::LinkClicked(uri)) => {
-                Some(Output::LinkClicked(uri))
+            Input::Answering(answering::Input::LinkClicked(uri)) => Some(Output::LinkClicked(uri)),
+            Input::Show => {
+                self.visible = true;
+                None
             }
-            Message::BackRequested => {
+            Input::SetTarget(target) => {
+                self.target = Some(target);
+                None
+            }
+            Input::AppendAnswer(chunk) => {
+                self.answering.push_token(&chunk);
+                None
+            }
+            Input::FinishAnswer => {
+                self.answering.finish();
+                None
+            }
+            Input::FailAnswer(error) => {
+                self.answering.fail(error);
+                None
+            }
+            Input::BackRequested => {
                 self.phase = Phase::Prompting;
                 Some(Output::PhaseChanged(Phase::Prompting))
             }
-            Message::DismissRequested => {
+            Input::DismissRequested => {
                 self.visible = false;
                 Some(Output::Dismissed)
             }
         }
     }
 
-    pub fn check_prompt_input_focus(&self) -> Task<Message> {
-        self.prompting.check_focus().map(Message::Prompting)
+    pub fn check_prompt_input_focus(&self) -> Task<Input> {
+        self.prompting.check_focus().map(Input::Prompting)
     }
 
     pub fn answer(&self) -> &str {
@@ -114,10 +127,10 @@ impl Overlay {
         self.answering.error()
     }
 
-    pub fn view(&self) -> Element<'_, Message> {
+    pub fn view(&self) -> Element<'_, Input> {
         let content = match self.phase {
-            Phase::Prompting => self.prompting.view().map(Message::Prompting),
-            Phase::Answering => self.answering.view().map(Message::Answering),
+            Phase::Prompting => self.prompting.view().map(Input::Prompting),
+            Phase::Answering => self.answering.view().map(Input::Answering),
         };
 
         container(
@@ -140,7 +153,7 @@ impl Overlay {
     }
 }
 
-fn header(overlay: &Overlay) -> Element<'_, Message> {
+fn header(overlay: &Overlay) -> Element<'_, Input> {
     let mut header = row![
         image(LOGO.clone())
             .width(style::LOGO_SIZE)
@@ -164,21 +177,21 @@ fn header(overlay: &Overlay) -> Element<'_, Message> {
     let mut actions = row![].spacing(style::HEADER_ACTION_SPACING);
 
     if overlay.phase == Phase::Answering {
-        actions = actions.push(header_button("←", Message::BackRequested));
+        actions = actions.push(header_button("←", Input::BackRequested));
     }
 
-    actions = actions.push(header_button("×", Message::DismissRequested));
+    actions = actions.push(header_button("×", Input::DismissRequested));
 
     header = header.push(space().width(Fill)).push(actions);
 
     header.into()
 }
 
-fn header_button(label: &'static str, message: Message) -> Element<'static, Message> {
+fn header_button(label: &'static str, input: Input) -> Element<'static, Input> {
     let icon = container(text(label).size(style::HEADER_ACTION_ICON_SIZE)).center(Fill);
 
     button(icon)
-        .on_press(message)
+        .on_press(input)
         .width(style::HEADER_ACTION_SIZE)
         .height(style::HEADER_ACTION_SIZE)
         .padding(0)
@@ -203,14 +216,14 @@ mod tests {
     #[test]
     fn empty_prompt_is_the_default_action() {
         let mut overlay = Overlay::new();
-        overlay.apply(UiUpdate::Show);
-        overlay.apply(UiUpdate::Target(Target::Text(TextCapture {
+        overlay.update(Input::Show);
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
             text: "epistemic uncertainty".into(),
             method: TextCaptureMethod::Accessibility,
         })));
 
         assert_eq!(
-            overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
+            overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
             Some(Output::Submitted(Submit { prompt: None }))
         );
         assert!(overlay.visible);
@@ -219,12 +232,12 @@ mod tests {
     #[test]
     fn typed_text_becomes_the_ask() {
         let mut overlay = Overlay::new();
-        overlay.update(Message::Prompting(prompting::Message::InputChanged(
+        overlay.update(Input::Prompting(prompting::Input::InputChanged(
             "in one sentence".into(),
         )));
 
         assert_eq!(
-            overlay.update(Message::Prompting(prompting::Message::SubmitRequested)),
+            overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
             Some(Output::Submitted(Submit {
                 prompt: Some("in one sentence".into()),
             }))
@@ -238,7 +251,7 @@ mod tests {
 
         assert!(
             overlay
-                .update(Message::Prompting(prompting::Message::SubmitRequested))
+                .update(Input::Prompting(prompting::Input::SubmitRequested))
                 .is_some()
         );
 
@@ -251,7 +264,7 @@ mod tests {
 
         assert!(
             overlay
-                .update(Message::Prompting(prompting::Message::InputChanged(
+                .update(Input::Prompting(prompting::Input::InputChanged(
                     "why?".into()
                 )))
                 .is_none()
@@ -264,7 +277,7 @@ mod tests {
         let mut overlay = Overlay::new();
 
         assert_eq!(
-            overlay.update(Message::Answering(answering::Message::LinkClicked(
+            overlay.update(Input::Answering(answering::Input::LinkClicked(
                 "https://example.com".into()
             ))),
             Some(Output::LinkClicked("https://example.com".into()))
@@ -274,9 +287,9 @@ mod tests {
     #[test]
     fn tokens_accumulate_into_the_answer() {
         let mut overlay = Overlay::new();
-        overlay.apply(UiUpdate::Token("un".into()));
-        overlay.apply(UiUpdate::Token("certainty".into()));
-        overlay.apply(UiUpdate::Done);
+        overlay.update(Input::AppendAnswer("un".into()));
+        overlay.update(Input::AppendAnswer("certainty".into()));
+        overlay.update(Input::FinishAnswer);
 
         assert_eq!(overlay.answer(), "uncertainty");
         assert!(overlay.answer_done());
@@ -288,7 +301,7 @@ mod tests {
         overlay.phase = Phase::Answering;
 
         assert_eq!(
-            overlay.update(Message::BackRequested),
+            overlay.update(Input::BackRequested),
             Some(Output::PhaseChanged(Phase::Prompting))
         );
         assert_eq!(overlay.phase, Phase::Prompting);
@@ -300,7 +313,7 @@ mod tests {
         overlay.visible = true;
 
         assert_eq!(
-            overlay.update(Message::DismissRequested),
+            overlay.update(Input::DismissRequested),
             Some(Output::Dismissed)
         );
         assert!(!overlay.visible);
@@ -313,7 +326,7 @@ mod tests {
         overlay.answering.finish();
         overlay.answering.fail("old error".into());
 
-        overlay.update(Message::Prompting(prompting::Message::SubmitRequested));
+        overlay.update(Input::Prompting(prompting::Input::SubmitRequested));
 
         assert!(overlay.answer().is_empty());
         assert!(!overlay.answer_done());

@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use iced::widget::{container, markdown, rich_text, row, svg, text};
 use iced::{Center, Element, Fill, Length, Pixels};
 
-use super::answering::Message;
+use super::answering::Input;
 use super::style;
 
 const ESCAPED_DOLLAR: char = '\u{e000}';
@@ -98,16 +98,16 @@ pub(super) fn normalize_delimiters(source: &str) -> String {
 
 pub(super) struct Viewer;
 
-impl<'a> markdown::Viewer<'a, Message> for Viewer {
-    fn on_link_click(url: markdown::Uri) -> Message {
-        Message::LinkClicked(url)
+impl<'a> markdown::Viewer<'a, Input> for Viewer {
+    fn on_link_click(url: markdown::Uri) -> Input {
+        Input::LinkClicked(url)
     }
 
     fn paragraph(
         &self,
         settings: markdown::Settings,
         content: &markdown::Text,
-    ) -> Element<'a, Message> {
+    ) -> Element<'a, Input> {
         if let Some(source) = display_math(content, settings.style) {
             return math(&source, true, settings.text_size);
         }
@@ -125,7 +125,7 @@ impl<'a> markdown::Viewer<'a, Message> for Viewer {
         level: &'a markdown::HeadingLevel,
         content: &'a markdown::Text,
         index: usize,
-    ) -> Element<'a, Message> {
+    ) -> Element<'a, Input> {
         let size = heading_size(settings, *level);
 
         if has_inline_math(content, settings.style) {
@@ -147,7 +147,7 @@ impl<'a> markdown::Viewer<'a, Message> for Viewer {
         language: Option<&'a str>,
         code: &'a str,
         lines: &'a [markdown::Text],
-    ) -> Element<'a, Message> {
+    ) -> Element<'a, Input> {
         if language.is_some_and(is_math_language) {
             math(code.trim(), true, settings.text_size)
         } else {
@@ -160,7 +160,7 @@ fn inline_content<'a>(
     content: &markdown::Text,
     settings: markdown::Settings,
     size: Pixels,
-) -> Element<'a, Message> {
+) -> Element<'a, Input> {
     let mut elements = Vec::new();
 
     for span in content.spans(settings.style).iter() {
@@ -173,7 +173,7 @@ fn inline_content<'a>(
 
                         elements.push(
                             rich_text(vec![styled])
-                                .on_link_click(Message::LinkClicked)
+                                .on_link_click(Input::LinkClicked)
                                 .size(size)
                                 .into(),
                         );
@@ -194,7 +194,7 @@ fn inline_content<'a>(
         .into()
 }
 
-fn math<'a>(source: &str, display: bool, size: Pixels) -> Element<'a, Message> {
+fn math<'a>(source: &str, display: bool, size: Pixels) -> Element<'a, Input> {
     let renderer = iced_math::MathRenderer::new()
         .font_size(size.0)
         .display_style(display)
@@ -202,7 +202,7 @@ fn math<'a>(source: &str, display: bool, size: Pixels) -> Element<'a, Message> {
 
     match renderer.to_svg(source) {
         Ok(bytes) => {
-            let equation: Element<'a, Message> = svg::Svg::new(svg::Handle::from_memory(bytes))
+            let equation: Element<'a, Input> = svg::Svg::new(svg::Handle::from_memory(bytes))
                 .width(Length::Shrink)
                 .height(Length::Shrink)
                 .into();

@@ -4,7 +4,7 @@ use iced::{Element, Fill};
 use super::{latex, style};
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum Input {
     LinkClicked(markdown::Uri),
 }
 
@@ -46,7 +46,7 @@ impl Answering {
         self.error.as_deref()
     }
 
-    pub fn view(&self) -> Element<'_, Message> {
+    pub fn view(&self) -> Element<'_, Input> {
         if let Some(error) = self.error() {
             return text(error)
                 .size(style::ERROR_SIZE)

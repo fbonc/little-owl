@@ -4,8 +4,8 @@ pub mod overlay;
 
 pub use overlay::Output as OverlayOutput;
 pub use overlay::{Overlay, Phase};
-pub use owl_types::{Submit, Target, UiUpdate};
+pub use owl_types::{Submit, Target};
 
-pub fn view(overlay: &Overlay) -> Element<'_, overlay::Message> {
+pub fn view(overlay: &Overlay) -> Element<'_, overlay::Input> {
     overlay.view()
 }

@@ -12,7 +12,7 @@ pub struct Prompting {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum Input {
     InputChanged(String),
     InputFocusChanged(bool),
     SubmitRequested,
@@ -28,11 +28,11 @@ impl Prompting {
         }
     }
 
-    pub fn update(&mut self, message: Message) {
-        match message {
-            Message::InputChanged(value) => self.prompt_value = value,
-            Message::InputFocusChanged(focused) => self.input_focused = focused,
-            Message::SubmitRequested => {}
+    pub fn update(&mut self, input: Input) {
+        match input {
+            Input::InputChanged(value) => self.prompt_value = value,
+            Input::InputFocusChanged(focused) => self.input_focused = focused,
+            Input::SubmitRequested => {}
         }
     }
 
@@ -40,20 +40,20 @@ impl Prompting {
         &self.prompt_value
     }
 
-    pub fn check_focus(&self) -> Task<Message> {
-        iced::widget::operation::is_focused(self.input_id.clone()).map(Message::InputFocusChanged)
+    pub fn check_focus(&self) -> Task<Input> {
+        iced::widget::operation::is_focused(self.input_id.clone()).map(Input::InputFocusChanged)
     }
 
-    pub fn view(&self) -> Element<'_, Message> {
+    pub fn view(&self) -> Element<'_, Input> {
         let field = text_input("", &self.prompt_value)
-            .on_input(Message::InputChanged)
-            .on_submit(Message::SubmitRequested)
+            .on_input(Input::InputChanged)
+            .on_submit(Input::SubmitRequested)
             .padding(style::INPUT_PADDING)
             .size(style::INPUT_SIZE)
             .style(style::input)
             .id(self.input_id.clone());
 
-        let placeholder: Element<'_, Message> = if self.prompt_value.is_empty() {
+        let placeholder: Element<'_, Input> = if self.prompt_value.is_empty() {
             let hint = container(row![
                 space().width(Fill),
                 text(style::HINT_TEXT)
@@ -83,7 +83,7 @@ impl Prompting {
         let send_icon = container(text("↵").size(style::SEND_SIZE)).center(Fill);
 
         let send = button(send_icon)
-            .on_press(Message::SubmitRequested)
+            .on_press(Input::SubmitRequested)
             .width(style::SEND_BUTTON_SIZE)
             .height(style::SEND_BUTTON_SIZE)
             .padding(0)
@@ -109,7 +109,7 @@ mod tests {
     fn changed_updates_the_local_value() {
         let mut prompting = Prompting::new("Ask the owl…");
 
-        prompting.update(Message::InputChanged("what is this?".into()));
+        prompting.update(Input::InputChanged("what is this?".into()));
 
         assert_eq!(prompting.prompt_value(), "what is this?");
     }
@@ -117,9 +117,9 @@ mod tests {
     #[test]
     fn submit_does_not_mutate_local_state() {
         let mut prompting = Prompting::new("Ask the owl…");
-        prompting.update(Message::InputChanged("keep me".into()));
+        prompting.update(Input::InputChanged("keep me".into()));
 
-        prompting.update(Message::SubmitRequested);
+        prompting.update(Input::SubmitRequested);
 
         assert_eq!(prompting.prompt_value(), "keep me");
     }

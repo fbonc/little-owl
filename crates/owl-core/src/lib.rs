@@ -2,42 +2,44 @@ use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::{Submit, Target, TextCapture, TextCaptureMethod, UiUpdate};
+use owl_types::{Submit, Target, TextCapture, TextCaptureMethod};
 use tokio::time::sleep;
 
-pub type CommandSender = mpsc::Sender<CoreCommand>;
+pub type Sender = mpsc::Sender<Input>;
 
 #[derive(Debug, Clone)]
-pub enum CoreCommand {
+pub enum Input {
     Submit(Submit),
 }
 
 #[derive(Debug, Clone)]
-pub enum RuntimeEvent {
-    Ready(CommandSender),
-    Ui(UiUpdate),
+pub enum Output {
+    ShowRequested,
+    TargetCaptured(Target),
+    AnswerChunk(String),
+    AnswerCompleted,
+    RequestFailed(String),
 }
 
-pub fn run() -> impl Stream<Item = RuntimeEvent> {
-    let (to_core, submissions) = mpsc::channel(1);
+pub fn start() -> (Sender, impl Stream<Item = Output>) {
+    let (sender, inputs) = mpsc::channel(1);
     let startup = stream::iter([
-        RuntimeEvent::Ready(to_core),
-        RuntimeEvent::Ui(UiUpdate::Show),
-        RuntimeEvent::Ui(UiUpdate::Target(sample_target())),
+        Output::ShowRequested,
+        Output::TargetCaptured(sample_target()),
     ]);
-    let responses = submissions.flat_map(|command| {
-        let CoreCommand::Submit(submit) = command;
+    let responses = inputs.flat_map(|input| {
+        let Input::Submit(submit) = input;
         stream::iter(answer_events(submit.prompt.as_deref()))
             .enumerate()
-            .then(|(index, message)| async move {
+            .then(|(index, output)| async move {
                 if index > 0 {
                     sleep(Duration::from_millis(55)).await;
                 }
-                RuntimeEvent::Ui(message)
+                output
             })
     });
 
-    startup.chain(responses)
+    (sender, startup.chain(responses))
 }
 
 fn sample_target() -> Target {
@@ -94,15 +96,15 @@ In short:
 > **Epistemic uncertainty describes what we do not know—and, importantly, what we may be able to learn.**
 ";
 
-fn answer_events(prompt: Option<&str>) -> Vec<UiUpdate> {
+fn answer_events(prompt: Option<&str>) -> Vec<Output> {
     let answer = match prompt {
         Some(prompt) => format!("You asked: {prompt}. Here is a mocked streamed reply."),
         None => DEFAULT_ANSWER.to_owned(),
     };
     let mut events = answer
         .split_inclusive(' ')
-        .map(|token| UiUpdate::Token(token.to_owned()))
+        .map(|token| Output::AnswerChunk(token.to_owned()))
         .collect::<Vec<_>>();
-    events.push(UiUpdate::Done);
+    events.push(Output::AnswerCompleted);
     events
 }

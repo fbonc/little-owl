@@ -62,15 +62,6 @@ pub struct Capture {
     pub elapsed_ms: u32,
 }
 
-#[derive(Debug, Clone)]
-pub enum UiUpdate {
-    Show,
-    Target(Target),
-    Token(String),
-    Done,
-    Error(String),
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Submit {
     pub prompt: Option<String>,
