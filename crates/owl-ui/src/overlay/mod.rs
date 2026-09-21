@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
-use owl_types::{Submit, Target};
+use owl_types::Target;
 
 pub mod answering;
 mod latex;
@@ -29,7 +29,7 @@ pub enum Input {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
-    Submitted(Submit),
+    Submitted { prompt: Option<String> },
     LinkClicked(String),
     PhaseChanged(Phase),
     Dismissed,
@@ -73,7 +73,9 @@ impl Overlay {
             Input::Prompting(prompting::Input::SubmitRequested) => {
                 self.phase = Phase::Answering;
                 self.answering.reset();
-                Some(Output::Submitted(self.commit()))
+                Some(Output::Submitted {
+                    prompt: self.commit(),
+                })
             }
             Input::Prompting(input) => {
                 self.prompting.update(input);
@@ -146,10 +148,9 @@ impl Overlay {
         .into()
     }
 
-    fn commit(&self) -> Submit {
-        let prompt = (!self.prompting.prompt_value().is_empty())
-            .then(|| self.prompting.prompt_value().to_owned());
-        Submit { prompt }
+    fn commit(&self) -> Option<String> {
+        (!self.prompting.prompt_value().is_empty())
+            .then(|| self.prompting.prompt_value().to_owned())
     }
 }
 
@@ -224,7 +225,7 @@ mod tests {
 
         assert_eq!(
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
-            Some(Output::Submitted(Submit { prompt: None }))
+            Some(Output::Submitted { prompt: None })
         );
         assert!(overlay.visible);
     }
@@ -238,9 +239,9 @@ mod tests {
 
         assert_eq!(
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
-            Some(Output::Submitted(Submit {
+            Some(Output::Submitted {
                 prompt: Some("in one sentence".into()),
-            }))
+            })
         );
     }
 

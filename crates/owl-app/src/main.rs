@@ -102,8 +102,8 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
             }
         },
         Input::Overlay(input) => match state.overlay.update(input) {
-            Some(OverlayOutput::Submitted(submit)) => {
-                let _ = state.to_core.try_send(owl_core::Input::Submit(submit));
+            Some(OverlayOutput::Submitted { prompt }) => {
+                let _ = state.to_core.try_send(owl_core::Input::Submit { prompt });
                 match state.window {
                     Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWERING_HEIGHT)),
                     None => Task::none(),

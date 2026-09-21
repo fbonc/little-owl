@@ -61,8 +61,3 @@ pub struct Capture {
     pub provenance: Option<Provenance>,
     pub elapsed_ms: u32,
 }
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Submit {
-    pub prompt: Option<String>,
-}
