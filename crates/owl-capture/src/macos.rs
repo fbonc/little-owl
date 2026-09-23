@@ -4,7 +4,9 @@ use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
 use axuielement as ax;
+use dispatch2::DispatchQueue;
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+use objc2::MainThreadMarker;
 use objc2_app_kit::NSWorkspace;
 use xcap::Monitor;
 use xcap::image::{ImageFormat, RgbaImage};
@@ -286,6 +288,16 @@ fn send_copy_shortcut() -> bool {
 }
 
 fn send_cmd_chord(c: char) -> bool {
+    if MainThreadMarker::new().is_some() {
+        return send_cmd_chord_on_current_thread(c);
+    }
+
+    let mut sent = false;
+    DispatchQueue::main().exec_sync(|| sent = send_cmd_chord_on_current_thread(c));
+    sent
+}
+
+fn send_cmd_chord_on_current_thread(c: char) -> bool {
     let Ok(mut enigo) = Enigo::new(&Settings::default()) else {
         return false;
     };
