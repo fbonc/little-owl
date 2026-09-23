@@ -54,11 +54,12 @@ fn hotkey_outputs() -> impl Stream<Item = Output> {
                         Ok(()) => {
                             let capturer = new_capturer();
                             let capture = match capturer.capture_text() {
-                                Ok(c) => { Target::Text(c) }
+                                Ok(c) => Some(Target::Text(c)),
                                 Err(error) => {
-                                    let _ = outputs.unbounded_send(
-                                        Output::RequestFailed(format!("failed to capture text: {error:?}")));
-                                    break;
+                                    let _ = outputs.unbounded_send(Output::RequestFailed(format!(
+                                        "failed to capture text: {error:?}"
+                                    )));
+                                    None
                                 }
                             };
 
@@ -66,13 +67,18 @@ fn hotkey_outputs() -> impl Stream<Item = Output> {
                                 break;
                             }
 
-                            if outputs.unbounded_send(Output::TargetCaptured(capture)).is_err() {
+                            if let Some(capture) = capture
+                                && outputs
+                                    .unbounded_send(Output::TargetCaptured(capture))
+                                    .is_err()
+                            {
                                 break;
                             }
                         }
                         Err(error) => {
-                            let _ = outputs.unbounded_send(
-                                Output::RequestFailed(format!("failed to receive hotkey: {error:?}")));
+                            let _ = outputs.unbounded_send(Output::RequestFailed(format!(
+                                "failed to receive hotkey: {error:?}"
+                            )));
                             break;
                         }
                     };
