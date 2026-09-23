@@ -1,9 +1,12 @@
+use std::thread;
 use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::{Target, TextCapture, TextCaptureMethod};
+use owl_types::Target;
 use tokio::time::sleep;
+
+const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
 
 pub type Sender = mpsc::Sender<Input>;
 
@@ -23,10 +26,7 @@ pub enum Output {
 
 pub fn start() -> (Sender, impl Stream<Item = Output>) {
     let (sender, inputs) = mpsc::channel(1);
-    let startup = stream::iter([
-        Output::ShowRequested,
-        Output::TargetCaptured(sample_target()),
-    ]);
+    let hotkey_outputs = hotkey_outputs();
     let responses = inputs.flat_map(|input| {
         let Input::Submit { prompt } = input;
         stream::iter(answer_events(prompt.as_deref()))
@@ -39,14 +39,40 @@ pub fn start() -> (Sender, impl Stream<Item = Output>) {
             })
     });
 
-    (sender, startup.chain(responses))
+    (sender, stream::select(hotkey_outputs, responses))
 }
 
-fn sample_target() -> Target {
-    Target::Text(TextCapture {
-        text: "epistemic uncertainty".into(),
-        method: TextCaptureMethod::Accessibility,
-    })
+fn hotkey_outputs() -> impl Stream<Item = Output> {
+    let (outputs, receiver) = mpsc::unbounded();
+
+    match owl_hotkey::new_hotkey(HOTKEY_ACCELERATOR) {
+        Ok(hotkey) => {
+            thread::spawn(move || {
+                loop {
+                    let output = match hotkey.recv() {
+                        Ok(()) => Output::ShowRequested,
+                        Err(error) => {
+                            let _ = outputs.unbounded_send(Output::RequestFailed(format!(
+                                "failed to receive hotkey: {error:?}"
+                            )));
+                            break;
+                        }
+                    };
+
+                    if outputs.unbounded_send(output).is_err() {
+                        break;
+                    }
+                }
+            });
+        }
+        Err(error) => {
+            let _ = outputs.unbounded_send(Output::RequestFailed(format!(
+                "failed to register {HOTKEY_ACCELERATOR}: {error:?}"
+            )));
+        }
+    }
+
+    receiver
 }
 
 const DEFAULT_ANSWER: &str = r"

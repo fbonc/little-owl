@@ -29,9 +29,13 @@ impl Hotkey for MacosHotkey {
         let receiver = GlobalHotKeyEvent::receiver();
         loop {
             let event = receiver.recv().map_err(|e| Error::Recv(e.to_string()))?;
-            if event.id() == self.id && event.state() == HotKeyState::Pressed {
+            if is_registered_press(&event, self.id) {
                 return Ok(());
             }
         }
     }
+}
+
+fn is_registered_press(event: &GlobalHotKeyEvent, registered_id: u32) -> bool {
+    event.id() == registered_id && event.state() == HotKeyState::Pressed
 }

@@ -34,6 +34,7 @@ fn main() -> iced::Result {
             size: iced::Size::new(WINDOW_WIDTH, PROMPTING_HEIGHT),
             min_size: Some(iced::Size::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)),
             position: window::Position::Centered,
+            visible: false,
             decorations: false,
             transparent: true,
             resizable: true,
