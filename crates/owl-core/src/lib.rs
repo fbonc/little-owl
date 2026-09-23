@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::{Target};
 use owl_capture::new_capturer;
+use owl_types::Target;
 use tokio::time::sleep;
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";

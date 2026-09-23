@@ -3294,7 +3294,9 @@ version = "0.1.0"
 dependencies = [
  "arboard",
  "axuielement",
+ "dispatch2",
  "enigo",
+ "objc2 0.6.4",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
  "owl-types",
