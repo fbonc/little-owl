@@ -1,12 +1,14 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use futures_channel::mpsc;
+use futures_util::future::{AbortHandle, AbortRegistration, Abortable, ready};
+use futures_util::stream::BoxStream;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::new_capturer;
-use owl_types::{Capture, ContextCapture, ImageCapture, Target};
-use tokio::time::sleep;
+use owl_provider::{MockProvider, Provider, ProviderOutput, ProviderRequest, ProviderStream};
+use owl_types::{Capture, ImageCapture, Target};
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
 
@@ -16,13 +18,6 @@ pub type Sender = mpsc::Sender<Input>;
 pub enum Input {
     Submit { prompt: Option<String> },
     SelectRegion,
-}
-
-#[derive(Debug, Clone)]
-pub struct ProviderRequest {
-    pub prompt: Option<String>,
-    pub target: Option<Target>,
-    pub context: Option<ContextCapture>,
 }
 
 #[derive(Debug, Clone)]
@@ -39,10 +34,13 @@ pub enum Output {
 struct CoreState {
     capture_id: u64,
     current_capture: Option<Capture>,
+    provider_request_id: u64,
+    provider_abort: Option<AbortHandle>,
 }
 
 impl CoreState {
     fn begin_capture(&mut self) -> u64 {
+        self.cancel_provider_request();
         self.capture_id = self.capture_id.wrapping_add(1);
         self.current_capture = None;
         self.capture_id
@@ -80,9 +78,39 @@ impl CoreState {
                 .and_then(|capture| capture.context.clone()),
         }
     }
+
+    fn begin_provider_request(&mut self) -> (u64, AbortRegistration) {
+        self.cancel_provider_request();
+        let (abort, registration) = AbortHandle::new_pair();
+        self.provider_abort = Some(abort);
+        (self.provider_request_id, registration)
+    }
+
+    fn cancel_provider_request(&mut self) {
+        self.provider_request_id = self.provider_request_id.wrapping_add(1);
+        if let Some(abort) = self.provider_abort.take() {
+            abort.abort();
+        }
+    }
+
+    fn accept_provider_output(&mut self, request_id: u64, output: &Output) -> bool {
+        if self.provider_request_id != request_id || self.provider_abort.is_none() {
+            return false;
+        }
+
+        if matches!(output, Output::AnswerCompleted | Output::RequestFailed(_)) {
+            self.provider_abort = None;
+        }
+
+        true
+    }
 }
 
 pub fn start() -> (Sender, impl Stream<Item = Output>) {
+    start_with_provider(Arc::new(MockProvider::default()))
+}
+
+pub fn start_with_provider(provider: Arc<dyn Provider>) -> (Sender, impl Stream<Item = Output>) {
     let (sender, inputs) = mpsc::channel(1);
     let state = Arc::new(Mutex::new(CoreState::default()));
     let hotkey_outputs = hotkey_outputs(Arc::clone(&state));
@@ -91,20 +119,20 @@ pub fn start() -> (Sender, impl Stream<Item = Output>) {
 
         match input {
             Input::Submit { prompt } => {
-                let request = state
-                    .lock()
-                    .expect("core state mutex poisoned")
-                    .provider_request(prompt);
+                let (request, request_id, abort_registration) = {
+                    let mut state = state.lock().expect("core state mutex poisoned");
+                    let request = state.provider_request(prompt);
+                    let (request_id, abort_registration) = state.begin_provider_request();
+                    (request, request_id, abort_registration)
+                };
 
-                stream::iter(answer_events(&request))
-                    .enumerate()
-                    .then(|(index, output)| async move {
-                        if index > 0 {
-                            sleep(Duration::from_millis(55)).await;
-                        }
-                        output
-                    })
-                    .boxed()
+                provider_outputs(
+                    Arc::clone(&provider),
+                    request,
+                    request_id,
+                    abort_registration,
+                    state,
+                )
             }
             Input::SelectRegion => {
                 let capture_id = state.lock().expect("core state mutex poisoned").capture_id;
@@ -138,6 +166,49 @@ pub fn start() -> (Sender, impl Stream<Item = Output>) {
     });
 
     (sender, stream::select(hotkey_outputs, responses))
+}
+
+enum ProviderResponseState {
+    Streaming(ProviderStream),
+    Finished,
+}
+
+fn provider_outputs(
+    provider: Arc<dyn Provider>,
+    request: ProviderRequest,
+    request_id: u64,
+    abort_registration: AbortRegistration,
+    state: Arc<Mutex<CoreState>>,
+) -> BoxStream<'static, Output> {
+    let outputs = stream::unfold(
+        ProviderResponseState::Streaming(provider.stream(request)),
+        |response| async move {
+            match response {
+                ProviderResponseState::Streaming(mut stream) => match stream.next().await {
+                    Some(Ok(ProviderOutput::TextDelta(chunk))) => Some((
+                        Output::AnswerChunk(chunk),
+                        ProviderResponseState::Streaming(stream),
+                    )),
+                    Some(Err(error)) => Some((
+                        Output::RequestFailed(error.to_string()),
+                        ProviderResponseState::Finished,
+                    )),
+                    None => Some((Output::AnswerCompleted, ProviderResponseState::Finished)),
+                },
+                ProviderResponseState::Finished => None,
+            }
+        },
+    );
+
+    Abortable::new(outputs, abort_registration)
+        .filter_map(move |output| {
+            let accepted = state
+                .lock()
+                .expect("core state mutex poisoned")
+                .accept_provider_output(request_id, &output);
+            ready(accepted.then_some(output))
+        })
+        .boxed()
 }
 
 fn hotkey_outputs(state: Arc<Mutex<CoreState>>) -> impl Stream<Item = Output> {
@@ -212,103 +283,18 @@ fn hotkey_outputs(state: Arc<Mutex<CoreState>>) -> impl Stream<Item = Output> {
     receiver
 }
 
-const DEFAULT_ANSWER: &str = r"
-## Epistemic Uncertainty
-
-**Epistemic uncertainty** is uncertainty caused by a **lack of knowledge**. It arises when we do not know enough about a system, its parameters, its underlying mechanisms, or the relevant facts.
-
-The key feature of epistemic uncertainty is that it is **potentially reducible**. By collecting more data, making better measurements, running experiments, or improving our models, we can often decrease it.
-
-### Example
-
-Suppose you find a coin but do not know whether it is fair. You might be uncertain whether:
-
-$$
-P(\text{heads}) = 0.5
-$$
-
-or perhaps \(0.6\), \(0.7\), or some other value.
-
-Your uncertainty about the coin's true probability of heads is **epistemic uncertainty**. Tossing the coin many times could help you estimate that probability more accurately.
-
-This contrasts with **aleatoric uncertainty**, which comes from inherent randomness. Even if you know with certainty that the coin is fair, you still cannot know whether the *next* toss will be heads or tails.
-
-So, roughly:
-
-* **Epistemic uncertainty:** *We don't know enough.*
-* **Aleatoric uncertainty:** *The outcome itself is variable or random.*
-
-### Where It Appears
-
-Epistemic uncertainty commonly comes from:
-
-* **Parameter uncertainty:** not knowing the exact values used in a model.
-* **Model uncertainty:** not knowing whether the model itself is correct.
-* **Measurement uncertainty:** imperfect observations or instruments.
-* **Missing knowledge:** not knowing all relevant variables or mechanisms.
-
-For example, a machine-learning model may have high epistemic uncertainty when it encounters data very different from anything in its training set.
-
-### Why It Matters
-
-Recognizing epistemic uncertainty helps prevent **false confidence**. A precise prediction is not necessarily a well-supported prediction.
-
-It also tells us when gathering more information is valuable. If uncertainty is epistemic, additional research or evidence may substantially improve a decision.
-
-In short:
-> **Epistemic uncertainty describes what we do not know—and, importantly, what we may be able to learn.**
-";
-
-fn answer_events(request: &ProviderRequest) -> Vec<Output> {
-    let image = match &request.target {
-        Some(Target::Image(image)) => Some(image),
-        _ => None,
-    };
-    let answer = match (request.prompt.as_deref(), image) {
-        (Some(prompt), Some(_)) => {
-            format!("You asked: {prompt}. Image target captured. Here is a mocked streamed reply.")
-        }
-        (None, Some(_)) => "Image target captured. Here is a mocked streamed reply.".to_owned(),
-        (Some(prompt), _) => format!("You asked: {prompt}. Here is a mocked streamed reply."),
-        (None, _) => DEFAULT_ANSWER.to_owned(),
-    };
-    let mut events = answer
-        .split_inclusive(' ')
-        .map(|token| Output::AnswerChunk(token.to_owned()))
-        .collect::<Vec<_>>();
-    events.push(Output::AnswerCompleted);
-    events
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use owl_types::{ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod};
+    use owl_types::{
+        ContextCapture, ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod,
+    };
 
     fn image() -> ImageCapture {
         ImageCapture {
             png: b"png".to_vec(),
             region: None,
         }
-    }
-
-    #[test]
-    fn image_reaches_mock_reply() {
-        let request = ProviderRequest {
-            prompt: Some("describe this".into()),
-            target: Some(Target::Image(image())),
-            context: None,
-        };
-        let reply = answer_events(&request)
-            .into_iter()
-            .filter_map(|event| match event {
-                Output::AnswerChunk(chunk) => Some(chunk),
-                _ => None,
-            })
-            .collect::<String>();
-
-        assert!(reply.contains("Image target captured"));
-        assert!(reply.contains("describe this"));
     }
 
     #[test]
@@ -423,5 +409,40 @@ mod tests {
             request.context,
             Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"
         ));
+    }
+
+    #[test]
+    fn newer_provider_request_aborts_the_previous_request() {
+        let mut state = CoreState::default();
+        let (first_id, first_registration) = state.begin_provider_request();
+        let first_abort = first_registration.handle();
+
+        let (second_id, _) = state.begin_provider_request();
+
+        assert!(first_abort.is_aborted());
+        assert_ne!(first_id, second_id);
+        assert!(!state.accept_provider_output(first_id, &Output::AnswerChunk("stale".into())));
+        assert!(state.accept_provider_output(second_id, &Output::AnswerChunk("current".into())));
+    }
+
+    #[test]
+    fn beginning_a_capture_aborts_the_active_provider_request() {
+        let mut state = CoreState::default();
+        let (request_id, registration) = state.begin_provider_request();
+        let abort = registration.handle();
+
+        state.begin_capture();
+
+        assert!(abort.is_aborted());
+        assert!(!state.accept_provider_output(request_id, &Output::AnswerChunk("stale".into())));
+    }
+
+    #[test]
+    fn terminal_provider_output_closes_the_active_request() {
+        let mut state = CoreState::default();
+        let (request_id, _) = state.begin_provider_request();
+
+        assert!(state.accept_provider_output(request_id, &Output::AnswerCompleted));
+        assert!(!state.accept_provider_output(request_id, &Output::AnswerChunk("late".into())));
     }
 }

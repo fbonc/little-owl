@@ -3313,6 +3313,7 @@ dependencies = [
  "futures-util",
  "owl-capture",
  "owl-hotkey",
+ "owl-provider",
  "owl-types",
  "tokio",
 ]
@@ -3322,6 +3323,17 @@ name = "owl-hotkey"
 version = "0.1.0"
 dependencies = [
  "global-hotkey",
+]
+
+[[package]]
+name = "owl-provider"
+version = "0.1.0"
+dependencies = [
+ "futures-core",
+ "futures-executor",
+ "futures-util",
+ "owl-types",
+ "tokio",
 ]
 
 [[package]]
