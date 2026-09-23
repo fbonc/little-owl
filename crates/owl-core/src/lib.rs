@@ -3,7 +3,8 @@ use std::time::Duration;
 
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
-use owl_types::Target;
+use owl_types::{Target};
+use owl_capture::new_capturer;
 use tokio::time::sleep;
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
@@ -49,19 +50,32 @@ fn hotkey_outputs() -> impl Stream<Item = Output> {
         Ok(hotkey) => {
             thread::spawn(move || {
                 loop {
-                    let output = match hotkey.recv() {
-                        Ok(()) => Output::ShowRequested,
+                    match hotkey.recv() {
+                        Ok(()) => {
+                            let capturer = new_capturer();
+                            let capture = match capturer.capture_text() {
+                                Ok(c) => { Target::Text(c) }
+                                Err(error) => {
+                                    let _ = outputs.unbounded_send(
+                                        Output::RequestFailed(format!("failed to capture text: {error:?}")));
+                                    break;
+                                }
+                            };
+
+                            if outputs.unbounded_send(Output::ShowRequested).is_err() {
+                                break;
+                            }
+
+                            if outputs.unbounded_send(Output::TargetCaptured(capture)).is_err() {
+                                break;
+                            }
+                        }
                         Err(error) => {
-                            let _ = outputs.unbounded_send(Output::RequestFailed(format!(
-                                "failed to receive hotkey: {error:?}"
-                            )));
+                            let _ = outputs.unbounded_send(
+                                Output::RequestFailed(format!("failed to receive hotkey: {error:?}")));
                             break;
                         }
                     };
-
-                    if outputs.unbounded_send(output).is_err() {
-                        break;
-                    }
                 }
             });
         }
