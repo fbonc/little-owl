@@ -94,7 +94,7 @@ impl Overlay {
                 self.visible = true;
                 self.target = None;
                 self.phase = Phase::Prompting;
-                self.prompting.clear_capture_failure();
+                self.prompting.reset();
                 None
             }
             Input::SetTarget(target) => {
@@ -270,6 +270,9 @@ mod tests {
     fn showing_again_returns_to_prompting_with_the_new_target() {
         let mut overlay = Overlay::new();
         overlay.phase = Phase::Answering;
+        overlay.update(Input::Prompting(prompting::Input::InputChanged(
+            "old prompt".into(),
+        )));
         overlay.update(Input::SetTarget(Target::Text(TextCapture {
             text: "previous selection".into(),
             method: TextCaptureMethod::Accessibility,
@@ -282,6 +285,7 @@ mod tests {
         })));
 
         assert_eq!(overlay.phase, Phase::Prompting);
+        assert!(overlay.prompting.prompt_value().is_empty());
         assert!(matches!(
             overlay.target,
             Some(Target::Text(TextCapture { ref text, .. })) if text == "new selection"

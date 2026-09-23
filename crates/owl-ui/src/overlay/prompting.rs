@@ -46,7 +46,8 @@ impl Prompting {
         &self.prompt_value
     }
 
-    pub fn clear_capture_failure(&mut self) {
+    pub fn reset(&mut self) {
+        self.prompt_value.clear();
         self.capture_failed = false;
     }
 
@@ -162,5 +163,17 @@ mod tests {
         prompting.update(Input::SubmitRequested);
 
         assert_eq!(prompting.prompt_value(), "keep me");
+    }
+
+    #[test]
+    fn reset_clears_the_prompt_and_capture_failure() {
+        let mut prompting = Prompting::new("Ask the owl…");
+        prompting.update(Input::InputChanged("old prompt".into()));
+        prompting.update(Input::CaptureFailed);
+
+        prompting.reset();
+
+        assert!(prompting.prompt_value().is_empty());
+        assert!(!prompting.capture_failed);
     }
 }
