@@ -36,7 +36,7 @@ pub trait Capturer: Send + Sync {
 
     fn capture_context(&self) -> Result<ContextCapture>;
 
-    fn capture_region(&self, region: ScreenRect) -> Result<ImageCapture>;
+    fn select_region(&self) -> Result<Option<ImageCapture>>;
 
     fn capture_provenance(&self) -> Result<Provenance>;
 }

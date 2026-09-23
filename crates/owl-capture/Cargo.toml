@@ -17,6 +17,7 @@ objc2 = "0.6.4"
 # dep (png only); its `image` feature would pull in every other codec. `xcap::image`
 # is re-exported, so PNG encoding needs no separate image dependency.
 xcap = { version = "0.9.8", default-features = false }
+tempfile = "3"
 # NSWorkspace, to get the frontmost app's pid: the system-wide AX element's
 # focused-element read returns kAXErrorCannotComplete on some setups, so reads
 # are routed through the frontmost application element (AXUIElementCreateApplication).

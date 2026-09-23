@@ -1,4 +1,4 @@
-use iced::widget::{Id, button, container, row, space, stack, text, text_input};
+use iced::widget::{Id, button, column, container, row, space, stack, svg, text, text_input};
 use iced::{Center, Element, Fill, Task};
 
 use super::style;
@@ -8,6 +8,7 @@ pub struct Prompting {
     prompt_value: String,
     input_id: Id,
     input_focused: bool,
+    capture_failed: bool,
     placeholder: &'static str,
 }
 
@@ -16,6 +17,8 @@ pub enum Input {
     InputChanged(String),
     InputFocusChanged(bool),
     SubmitRequested,
+    CaptureRegionRequested,
+    CaptureFailed,
 }
 
 impl Prompting {
@@ -24,6 +27,7 @@ impl Prompting {
             prompt_value: String::new(),
             input_id: Id::unique(),
             input_focused: false,
+            capture_failed: false,
             placeholder,
         }
     }
@@ -32,12 +36,18 @@ impl Prompting {
         match input {
             Input::InputChanged(value) => self.prompt_value = value,
             Input::InputFocusChanged(focused) => self.input_focused = focused,
+            Input::CaptureRegionRequested => self.capture_failed = false,
+            Input::CaptureFailed => self.capture_failed = true,
             Input::SubmitRequested => {}
         }
     }
 
     pub fn prompt_value(&self) -> &str {
         &self.prompt_value
+    }
+
+    pub fn clear_capture_failure(&mut self) {
+        self.capture_failed = false;
     }
 
     pub fn check_focus(&self) -> Task<Input> {
@@ -91,13 +101,43 @@ impl Prompting {
 
         let send = container(send).padding(style::SEND_BUTTON_INSET);
 
-        container(
+        let prompt_bar = container(
             row![stack![field, placeholder], send]
                 .spacing(style::INPUT_ACTION_SPACING)
                 .align_y(Center),
         )
-        .style(move |theme| style::input_box(theme, self.input_focused))
-        .into()
+        .width(Fill)
+        .style(move |theme| style::input_box(theme, self.input_focused));
+
+        let icon = svg(svg::Handle::from_memory(
+            include_bytes!("../../../../assets/capture-region.svg").as_slice(),
+        ))
+        .width(18)
+        .height(18);
+        let capture = button(
+            row![
+                icon,
+                text("Capture region").size(style::CAPTURE_BUTTON_TEXT_SIZE)
+            ]
+            .spacing(7)
+            .align_y(Center),
+        )
+        .on_press(Input::CaptureRegionRequested)
+        .padding([5, 8])
+        .style(style::capture_button);
+
+        let mut capture_row = row![capture].spacing(8).align_y(Center);
+        if self.capture_failed {
+            capture_row = capture_row.push(
+                text("Capture failed. Try again.")
+                    .size(style::CAPTURE_BUTTON_TEXT_SIZE)
+                    .color(style::DANGER_COLOR),
+            );
+        }
+
+        column![prompt_bar, capture_row]
+            .spacing(style::CAPTURE_BUTTON_SPACING)
+            .into()
     }
 }
 

@@ -94,6 +94,8 @@ pub const ERROR_SIZE: f32 = 14.0;
 pub const SEND_SIZE: f32 = 24.0;
 pub const SEND_BUTTON_SIZE: f32 = 36.0;
 pub const SEND_BUTTON_INSET: f32 = 4.0;
+pub const CAPTURE_BUTTON_TEXT_SIZE: f32 = 13.0;
+pub const CAPTURE_BUTTON_SPACING: f32 = 6.0;
 
 pub const PLACEHOLDERS: [&str; 7] = [
     "Hoot away…",
@@ -186,6 +188,24 @@ pub fn send_button(_theme: &Theme, status: button::Status) -> button::Style {
 }
 
 pub fn header_button(_theme: &Theme, status: button::Status) -> button::Style {
+    let (background, text_color) = match status {
+        button::Status::Hovered => (Some(INPUT_BACKGROUND.into()), TEXT_COLOR),
+        button::Status::Pressed => (Some(BORDER_COLOR.into()), TEXT_COLOR),
+        _ => (None, MUTED_COLOR),
+    };
+
+    button::Style {
+        background,
+        text_color,
+        border: Border {
+            radius: 6.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+pub fn capture_button(_theme: &Theme, status: button::Status) -> button::Style {
     let (background, text_color) = match status {
         button::Status::Hovered => (Some(INPUT_BACKGROUND.into()), TEXT_COLOR),
         button::Status::Pressed => (Some(BORDER_COLOR.into()), TEXT_COLOR),

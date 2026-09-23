@@ -4,7 +4,7 @@ use std::time::Duration;
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::new_capturer;
-use owl_types::Target;
+use owl_types::{ImageCapture, Target};
 use tokio::time::sleep;
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
@@ -13,13 +13,18 @@ pub type Sender = mpsc::Sender<Input>;
 
 #[derive(Debug, Clone)]
 pub enum Input {
-    Submit { prompt: Option<String> },
+    Submit {
+        prompt: Option<String>,
+        image: Option<ImageCapture>,
+    },
+    SelectRegion,
 }
 
 #[derive(Debug, Clone)]
 pub enum Output {
     ShowRequested,
     TargetCaptured(Target),
+    RegionSelectionFinished(Result<Option<ImageCapture>, String>),
     AnswerChunk(String),
     AnswerCompleted,
     RequestFailed(String),
@@ -28,16 +33,30 @@ pub enum Output {
 pub fn start() -> (Sender, impl Stream<Item = Output>) {
     let (sender, inputs) = mpsc::channel(1);
     let hotkey_outputs = hotkey_outputs();
-    let responses = inputs.flat_map(|input| {
-        let Input::Submit { prompt } = input;
-        stream::iter(answer_events(prompt.as_deref()))
-            .enumerate()
-            .then(|(index, output)| async move {
-                if index > 0 {
-                    sleep(Duration::from_millis(55)).await;
-                }
-                output
+    let responses = inputs.flat_map(|input| match input {
+        Input::Submit { prompt, image } => {
+            stream::iter(answer_events(prompt.as_deref(), image.as_ref()))
+                .enumerate()
+                .then(|(index, output)| async move {
+                    if index > 0 {
+                        sleep(Duration::from_millis(55)).await;
+                    }
+                    output
+                })
+                .boxed()
+        }
+        Input::SelectRegion => stream::once(async {
+            let result = tokio::task::spawn_blocking(|| {
+                new_capturer()
+                    .select_region()
+                    .map_err(|error| error.to_string())
             })
+            .await
+            .map_err(|error| format!("region selection task failed: {error}"))
+            .and_then(|result| result);
+            Output::RegionSelectionFinished(result)
+        })
+        .boxed(),
     });
 
     (sender, stream::select(hotkey_outputs, responses))
@@ -142,10 +161,14 @@ In short:
 > **Epistemic uncertainty describes what we do not know—and, importantly, what we may be able to learn.**
 ";
 
-fn answer_events(prompt: Option<&str>) -> Vec<Output> {
-    let answer = match prompt {
-        Some(prompt) => format!("You asked: {prompt}. Here is a mocked streamed reply."),
-        None => DEFAULT_ANSWER.to_owned(),
+fn answer_events(prompt: Option<&str>, image: Option<&ImageCapture>) -> Vec<Output> {
+    let answer = match (prompt, image) {
+        (Some(prompt), Some(_)) => {
+            format!("You asked: {prompt}. Image target captured. Here is a mocked streamed reply.")
+        }
+        (None, Some(_)) => "Image target captured. Here is a mocked streamed reply.".to_owned(),
+        (Some(prompt), _) => format!("You asked: {prompt}. Here is a mocked streamed reply."),
+        (None, _) => DEFAULT_ANSWER.to_owned(),
     };
     let mut events = answer
         .split_inclusive(' ')
@@ -153,4 +176,26 @@ fn answer_events(prompt: Option<&str>) -> Vec<Output> {
         .collect::<Vec<_>>();
     events.push(Output::AnswerCompleted);
     events
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn image_reaches_mock_reply() {
+        let image = ImageCapture {
+            png: b"png".to_vec(),
+            region: None,
+        };
+        let reply = answer_events(Some("describe this"), Some(&image))
+            .into_iter()
+            .filter_map(|event| match event {
+                Output::AnswerChunk(chunk) => Some(chunk),
+                _ => None,
+            })
+            .collect::<String>();
+
+        assert!(reply.contains("Image target captured"));
+        assert!(reply.contains("describe this"));
+    }
 }

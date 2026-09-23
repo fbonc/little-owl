@@ -29,7 +29,8 @@ pub struct TextCapture {
 #[derive(Debug, Clone)]
 pub struct ImageCapture {
     pub png: Vec<u8>,
-    pub region: ScreenRect,
+    /// Interactive selection supplies PNG bytes without a display rectangle.
+    pub region: Option<ScreenRect>,
 }
 
 #[derive(Debug, Clone)]

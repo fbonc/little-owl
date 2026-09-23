@@ -21,6 +21,7 @@ pub enum Input {
     Answering(answering::Input),
     Show,
     SetTarget(Target),
+    CaptureFailed,
     AppendAnswer(String),
     FinishAnswer,
     FailAnswer(String),
@@ -31,6 +32,7 @@ pub enum Input {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
     Submitted { prompt: Option<String> },
+    CaptureRegionRequested,
     LinkClicked(String),
     PhaseChanged(Phase),
     Dismissed,
@@ -78,6 +80,11 @@ impl Overlay {
                     prompt: self.commit(),
                 })
             }
+            Input::Prompting(prompting::Input::CaptureRegionRequested) => {
+                self.prompting
+                    .update(prompting::Input::CaptureRegionRequested);
+                Some(Output::CaptureRegionRequested)
+            }
             Input::Prompting(input) => {
                 self.prompting.update(input);
                 None
@@ -86,10 +93,15 @@ impl Overlay {
             Input::Show => {
                 self.visible = true;
                 self.target = None;
+                self.prompting.clear_capture_failure();
                 None
             }
             Input::SetTarget(target) => {
                 self.target = Some(target);
+                None
+            }
+            Input::CaptureFailed => {
+                self.prompting.update(prompting::Input::CaptureFailed);
                 None
             }
             Input::AppendAnswer(chunk) => {
@@ -261,6 +273,21 @@ mod tests {
                 prompt: Some("in one sentence".into()),
             })
         );
+    }
+
+    #[test]
+    fn region_capture_request_keeps_the_prompt() {
+        let mut overlay = Overlay::new();
+        overlay.update(Input::Prompting(prompting::Input::InputChanged(
+            "what is shown?".into(),
+        )));
+
+        assert_eq!(
+            overlay.update(Input::Prompting(prompting::Input::CaptureRegionRequested)),
+            Some(Output::CaptureRegionRequested)
+        );
+        assert_eq!(overlay.phase, Phase::Prompting);
+        assert_eq!(overlay.prompting.prompt_value(), "what is shown?");
     }
 
     #[test]

@@ -9,4 +9,4 @@ futures-util = "0.3.31"
 owl-hotkey = { path = "../owl-hotkey" }
 owl-types = { path = "../owl-types" }
 owl-capture = { path = "../owl-capture"}
-tokio = { version = "1", features = ["time"] }
+tokio = { version = "1", features = ["rt", "time"] }

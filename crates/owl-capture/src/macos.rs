@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::process::Command;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -64,7 +65,10 @@ impl MacosCapturer {
     // Screenshot a region into an ImageCapture (PNG bytes + the region shot).
     fn capture_image(&self, region: ScreenRect) -> Result<ImageCapture> {
         let png = screenshot_png(region)?;
-        Ok(ImageCapture { png, region })
+        Ok(ImageCapture {
+            png,
+            region: Some(region),
+        })
     }
 }
 
@@ -182,8 +186,40 @@ impl Capturer for MacosCapturer {
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_region(&self, region: ScreenRect) -> Result<ImageCapture> {
-        self.capture_image(region)
+    fn select_region(&self) -> Result<Option<ImageCapture>> {
+        let directory = tempfile::tempdir()
+            .map_err(|e| Error::Platform(format!("failed to create capture file: {e}")))?;
+        let path = directory.path().join("selection.png");
+        let output = Command::new("/usr/sbin/screencapture")
+            .args(["-i", "-s", "-x", "-d", "-t", "png"])
+            .arg(&path)
+            .output()
+            .map_err(|e| Error::Platform(format!("failed to start region selection: {e}")))?;
+
+        if !path.exists() {
+            if output.stderr.is_empty() {
+                return Ok(None);
+            }
+            return Err(Error::Platform(format!(
+                "region selection failed: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            )));
+        }
+        if !output.status.success() {
+            return Err(Error::Platform(format!(
+                "region selection failed: {}",
+                output.status
+            )));
+        }
+
+        let png = std::fs::read(&path)
+            .map_err(|e| Error::Platform(format!("failed to read captured region: {e}")))?;
+        if !png.starts_with(b"\x89PNG\r\n\x1a\n") {
+            return Err(Error::Platform(
+                "region selection did not produce a PNG".into(),
+            ));
+        }
+        Ok(Some(ImageCapture { png, region: None }))
     }
 
     fn capture_provenance(&self) -> Result<Provenance> {
@@ -538,7 +574,7 @@ mod tests {
             h: 200.0,
             display,
         };
-        let img = cap.capture_region(region).expect("capture");
+        let img = cap.capture_image(region).expect("capture");
         assert!(!img.png.is_empty());
         assert_eq!(&img.png[..8], b"\x89PNG\r\n\x1a\n");
     }

@@ -3300,6 +3300,7 @@ dependencies = [
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
  "owl-types",
+ "tempfile",
  "thiserror 2.0.20",
  "xcap",
 ]
