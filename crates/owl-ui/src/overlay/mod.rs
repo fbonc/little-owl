@@ -1,8 +1,8 @@
 use std::sync::LazyLock;
 
+use iced::advanced::text::Wrapping;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
-use iced::advanced::text::{Wrapping};
 
 use owl_types::Target;
 
@@ -85,6 +85,7 @@ impl Overlay {
             Input::Answering(answering::Input::LinkClicked(uri)) => Some(Output::LinkClicked(uri)),
             Input::Show => {
                 self.visible = true;
+                self.target = None;
                 None
             }
             Input::SetTarget(target) => {
@@ -230,6 +231,20 @@ mod tests {
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
             Some(Output::Submitted { prompt: None })
         );
+        assert!(overlay.visible);
+    }
+
+    #[test]
+    fn showing_again_clears_the_previous_target() {
+        let mut overlay = Overlay::new();
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
+            text: "previous selection".into(),
+            method: TextCaptureMethod::Accessibility,
+        })));
+
+        overlay.update(Input::Show);
+
+        assert!(overlay.target.is_none());
         assert!(overlay.visible);
     }
 
