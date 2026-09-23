@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
+use iced::advanced::text::{Wrapping};
 
 use owl_types::Target;
 
@@ -165,13 +166,15 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
 
     if let Some(target) = &overlay.target {
         let label = match target {
-            Target::Text(text) => text.text.as_str(),
-            Target::Image(_) => style::IMAGE_TARGET_LABEL,
+            Target::Text(text) => text.text.as_str().replace("\n", "").replace("\r", ""),
+            Target::Image(_) => style::IMAGE_TARGET_LABEL.to_string(),
         };
+
         header = header.push(
             text(label)
                 .size(style::TARGET_SIZE)
-                .color(style::MUTED_COLOR),
+                .color(style::MUTED_COLOR)
+                .wrapping(Wrapping::None),
         );
     }
 

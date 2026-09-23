@@ -98,6 +98,7 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
                 Task::none()
             }
             CoreOutput::RequestFailed(error) => {
+                eprintln!("core request failed: {error}");
                 let _ = state.overlay.update(overlay::Input::FailAnswer(error));
                 Task::none()
             }
