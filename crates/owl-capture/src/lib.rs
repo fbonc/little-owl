@@ -4,7 +4,7 @@ use thiserror::Error;
 // owl-core and owl-ui can name these without depending on owl-capture. Re-exported
 // here so `owl_capture::Target` etc. and the trait signatures below keep working.
 pub use owl_types::{
-    Capture, ContextCapture, ContextCaptureMethod, ImageCapture, Provenance, ScreenRect, Target,
+    ContextCapture, ContextCaptureMethod, ImageCapture, Provenance, ScreenRect, Target,
     TextCapture, TextCaptureMethod,
 };
 

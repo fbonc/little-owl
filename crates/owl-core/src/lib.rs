@@ -8,7 +8,7 @@ use futures_util::stream::BoxStream;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::new_capturer;
 use owl_provider::{MockProvider, Provider, ProviderOutput, ProviderRequest, ProviderStream};
-use owl_types::{Capture, ImageCapture, Target};
+use owl_types::{ImageCapture, Target, ContextCapture, Provenance};
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
 
@@ -28,6 +28,14 @@ pub enum Output {
     AnswerChunk(String),
     AnswerCompleted,
     RequestFailed(String),
+}
+
+#[derive(Debug, Clone)]
+pub struct Capture {
+    pub target: Option<Target>,
+    pub context: Option<ContextCapture>,
+    pub provenance: Option<Provenance>,
+    pub elapsed_ms: u32,
 }
 
 #[derive(Debug, Default)]

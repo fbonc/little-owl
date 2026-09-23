@@ -54,11 +54,3 @@ pub struct Provenance {
     pub window_title: String,
     pub path: Option<String>,
 }
-
-#[derive(Debug, Clone)]
-pub struct Capture {
-    pub target: Option<Target>,
-    pub context: Option<ContextCapture>,
-    pub provenance: Option<Provenance>,
-    pub elapsed_ms: u32,
-}
