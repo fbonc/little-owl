@@ -8,7 +8,7 @@ use futures_util::stream::BoxStream;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::new_capturer;
 use owl_provider::{MockProvider, Provider, ProviderOutput, ProviderRequest, ProviderStream};
-use owl_types::{ImageCapture, Target, ContextCapture, Provenance};
+use owl_types::{ContextCapture, ImageCapture, Provenance, Target};
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
 
@@ -73,8 +73,12 @@ impl CoreState {
         true
     }
 
-    fn provider_request(&self, prompt: Option<String>) -> ProviderRequest {
-        ProviderRequest {
+    fn start_provider_request(
+        &mut self,
+        prompt: Option<String>,
+    ) -> (ProviderRequest, u64, AbortRegistration) {
+        self.cancel_provider_request();
+        let request = ProviderRequest {
             prompt,
             target: self
                 .current_capture
@@ -84,14 +88,10 @@ impl CoreState {
                 .current_capture
                 .as_ref()
                 .and_then(|capture| capture.context.clone()),
-        }
-    }
-
-    fn begin_provider_request(&mut self) -> (u64, AbortRegistration) {
-        self.cancel_provider_request();
+        };
         let (abort, registration) = AbortHandle::new_pair();
         self.provider_abort = Some(abort);
-        (self.provider_request_id, registration)
+        (request, self.provider_request_id, registration)
     }
 
     fn cancel_provider_request(&mut self) {
@@ -129,9 +129,7 @@ pub fn start_with_provider(provider: Arc<dyn Provider>) -> (Sender, impl Stream<
             Input::Submit { prompt } => {
                 let (request, request_id, abort_registration) = {
                     let mut state = state.lock().expect("core state mutex poisoned");
-                    let request = state.provider_request(prompt);
-                    let (request_id, abort_registration) = state.begin_provider_request();
-                    (request, request_id, abort_registration)
+                    state.start_provider_request(prompt)
                 };
 
                 provider_outputs(
@@ -331,7 +329,7 @@ mod tests {
             },
         );
 
-        let request = state.provider_request(Some("explain this".into()));
+        let (request, _, _) = state.start_provider_request(Some("explain this".into()));
 
         assert_eq!(request.prompt.as_deref(), Some("explain this"));
         assert!(matches!(
@@ -410,7 +408,7 @@ mod tests {
         );
 
         assert!(state.apply_region(capture_id, image()));
-        let request = state.provider_request(None);
+        let (request, _, _) = state.start_provider_request(None);
 
         assert!(matches!(request.target, Some(Target::Image(_))));
         assert!(matches!(
@@ -422,10 +420,10 @@ mod tests {
     #[test]
     fn newer_provider_request_aborts_the_previous_request() {
         let mut state = CoreState::default();
-        let (first_id, first_registration) = state.begin_provider_request();
+        let (_, first_id, first_registration) = state.start_provider_request(None);
         let first_abort = first_registration.handle();
 
-        let (second_id, _) = state.begin_provider_request();
+        let (_, second_id, _) = state.start_provider_request(None);
 
         assert!(first_abort.is_aborted());
         assert_ne!(first_id, second_id);
@@ -436,7 +434,7 @@ mod tests {
     #[test]
     fn beginning_a_capture_aborts_the_active_provider_request() {
         let mut state = CoreState::default();
-        let (request_id, registration) = state.begin_provider_request();
+        let (_, request_id, registration) = state.start_provider_request(None);
         let abort = registration.handle();
 
         state.begin_capture();
@@ -448,7 +446,7 @@ mod tests {
     #[test]
     fn terminal_provider_output_closes_the_active_request() {
         let mut state = CoreState::default();
-        let (request_id, _) = state.begin_provider_request();
+        let (_, request_id, _) = state.start_provider_request(None);
 
         assert!(state.accept_provider_output(request_id, &Output::AnswerCompleted));
         assert!(!state.accept_provider_output(request_id, &Output::AnswerChunk("late".into())));
