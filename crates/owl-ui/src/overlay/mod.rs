@@ -93,6 +93,7 @@ impl Overlay {
             Input::Show => {
                 self.visible = true;
                 self.target = None;
+                self.phase = Phase::Prompting;
                 self.prompting.clear_capture_failure();
                 None
             }
@@ -169,27 +170,25 @@ impl Overlay {
 }
 
 fn header(overlay: &Overlay) -> Element<'_, Input> {
-    let mut header = row![
-        image(LOGO.clone())
-            .width(style::LOGO_SIZE)
-            .height(style::LOGO_SIZE)
-    ]
-    .spacing(style::HEADER_SPACING)
-    .align_y(Center);
-
-    if let Some(target) = &overlay.target {
+    let target: Element<'_, Input> = if let Some(target) = &overlay.target {
         let label = match target {
             Target::Text(text) => text.text.as_str().replace("\n", "").replace("\r", ""),
             Target::Image(_) => style::IMAGE_TARGET_LABEL.to_string(),
         };
 
-        header = header.push(
+        container(
             text(label)
                 .size(style::TARGET_SIZE)
                 .color(style::MUTED_COLOR)
+                .width(Fill)
                 .wrapping(Wrapping::None),
-        );
-    }
+        )
+        .width(Fill)
+        .clip(true)
+        .into()
+    } else {
+        space().width(Fill).into()
+    };
 
     let mut actions = row![].spacing(style::HEADER_ACTION_SPACING);
 
@@ -199,9 +198,16 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
 
     actions = actions.push(header_button("×", Input::DismissRequested));
 
-    header = header.push(space().width(Fill)).push(actions);
-
-    header.into()
+    row![
+        image(LOGO.clone())
+            .width(style::LOGO_SIZE)
+            .height(style::LOGO_SIZE),
+        target,
+        actions,
+    ]
+    .spacing(style::HEADER_SPACING)
+    .align_y(Center)
+    .into()
 }
 
 fn header_button(label: &'static str, input: Input) -> Element<'static, Input> {
@@ -258,6 +264,28 @@ mod tests {
 
         assert!(overlay.target.is_none());
         assert!(overlay.visible);
+    }
+
+    #[test]
+    fn showing_again_returns_to_prompting_with_the_new_target() {
+        let mut overlay = Overlay::new();
+        overlay.phase = Phase::Answering;
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
+            text: "previous selection".into(),
+            method: TextCaptureMethod::Accessibility,
+        })));
+
+        overlay.update(Input::Show);
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
+            text: "new selection".into(),
+            method: TextCaptureMethod::Accessibility,
+        })));
+
+        assert_eq!(overlay.phase, Phase::Prompting);
+        assert!(matches!(
+            overlay.target,
+            Some(Target::Text(TextCapture { ref text, .. })) if text == "new selection"
+        ));
     }
 
     #[test]

@@ -78,55 +78,55 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
             Some(id) => window::drag(id),
             None => Task::none(),
         },
-        Input::Core(output) => {
-            match output {
-                CoreOutput::ShowRequested => {
-                    let _ = state.overlay.update(overlay::Input::Show);
-                    match state.window {
-                        Some(id) => window::set_mode(id, window::Mode::Windowed)
-                            .chain(window::gain_focus(id)),
-                        None => Task::none(),
-                    }
-                }
-                CoreOutput::TargetCaptured(target) => {
-                    let _ = state.overlay.update(overlay::Input::SetTarget(target));
-                    Task::none()
-                }
-                CoreOutput::RegionSelectionFinished(result) => {
-                    state.selecting_region = false;
-                    match result {
-                        Ok(Some(image)) => {
-                            let _ = state
-                                .overlay
-                                .update(overlay::Input::SetTarget(Target::Image(image)));
-                        }
-                        Ok(None) => {}
-                        Err(error) => {
-                            eprintln!("region selection failed: {error}");
-                            let _ = state.overlay.update(overlay::Input::CaptureFailed);
-                        }
-                    }
-                    match state.window {
-                        Some(id) => window::set_mode(id, window::Mode::Windowed)
-                            .chain(window::gain_focus(id)),
-                        None => Task::none(),
-                    }
-                }
-                CoreOutput::AnswerChunk(chunk) => {
-                    let _ = state.overlay.update(overlay::Input::AppendAnswer(chunk));
-                    Task::none()
-                }
-                CoreOutput::AnswerCompleted => {
-                    let _ = state.overlay.update(overlay::Input::FinishAnswer);
-                    Task::none()
-                }
-                CoreOutput::RequestFailed(error) => {
-                    eprintln!("core request failed: {error}");
-                    let _ = state.overlay.update(overlay::Input::FailAnswer(error));
-                    Task::none()
+        Input::Core(output) => match output {
+            CoreOutput::ShowRequested => {
+                let _ = state.overlay.update(overlay::Input::Show);
+                match state.window {
+                    Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, PROMPTING_HEIGHT))
+                        .chain(window::set_mode(id, window::Mode::Windowed))
+                        .chain(window::gain_focus(id)),
+                    None => Task::none(),
                 }
             }
-        }
+            CoreOutput::TargetCaptured(target) => {
+                let _ = state.overlay.update(overlay::Input::SetTarget(target));
+                Task::none()
+            }
+            CoreOutput::RegionSelectionFinished(result) => {
+                state.selecting_region = false;
+                match result {
+                    Ok(Some(image)) => {
+                        let _ = state
+                            .overlay
+                            .update(overlay::Input::SetTarget(Target::Image(image)));
+                    }
+                    Ok(None) => {}
+                    Err(error) => {
+                        eprintln!("region selection failed: {error}");
+                        let _ = state.overlay.update(overlay::Input::CaptureFailed);
+                    }
+                }
+                match state.window {
+                    Some(id) => {
+                        window::set_mode(id, window::Mode::Windowed).chain(window::gain_focus(id))
+                    }
+                    None => Task::none(),
+                }
+            }
+            CoreOutput::AnswerChunk(chunk) => {
+                let _ = state.overlay.update(overlay::Input::AppendAnswer(chunk));
+                Task::none()
+            }
+            CoreOutput::AnswerCompleted => {
+                let _ = state.overlay.update(overlay::Input::FinishAnswer);
+                Task::none()
+            }
+            CoreOutput::RequestFailed(error) => {
+                eprintln!("core request failed: {error}");
+                let _ = state.overlay.update(overlay::Input::FailAnswer(error));
+                Task::none()
+            }
+        },
         Input::Overlay(input) => match state.overlay.update(input) {
             Some(OverlayOutput::Submitted { prompt }) => {
                 let _ = state.to_core.try_send(owl_core::Input::Submit {

@@ -117,7 +117,7 @@ impl Prompting {
         let capture = button(
             row![
                 icon,
-                text("Capture region").size(style::CAPTURE_BUTTON_TEXT_SIZE)
+                text("Capture Screen").size(style::CAPTURE_BUTTON_TEXT_SIZE)
             ]
             .spacing(7)
             .align_y(Center),
