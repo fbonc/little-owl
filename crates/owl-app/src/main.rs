@@ -3,7 +3,7 @@ use std::sync::Arc;
 use iced::widget::mouse_area;
 use iced::{Element, Subscription, Task, Theme, window};
 use owl_core::{Output as CoreOutput, Sender as CoreSender};
-use owl_provider::{MockProvider, ModelSelection, ProviderId, ProviderRegistry};
+use owl_provider::{MockProvider, ProviderId, ProviderRegistry};
 use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Target};
 
@@ -16,7 +16,6 @@ const ANSWERING_HEIGHT: f32 = 360.0;
 struct App {
     overlay: Overlay,
     providers: ProviderRegistry,
-    selected_model: Option<ModelSelection>,
     to_core: CoreSender,
     window: Option<window::Id>,
     selecting_region: bool,
@@ -64,9 +63,8 @@ fn boot() -> (App, Task<Input>) {
 
     (
         App {
-            overlay: Overlay::new(),
+            overlay: Overlay::new().with_selected_model(selected_model),
             providers,
-            selected_model,
             to_core,
             window: None,
             selecting_region: false,
@@ -138,20 +136,15 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
             }
         },
         Input::Overlay(input) => match state.overlay.update(input) {
-            Some(OverlayOutput::Submitted { prompt }) => {
-                let Some(model) = state.selected_model.clone() else {
-                    let _ = state
-                        .overlay
-                        .update(overlay::Input::FailAnswer("no provider configured".into()));
+            Some(OverlayOutput::Submitted { prompt, model }) => {
+                let available_models = state.providers.available_models();
+                let Some(model) = model.filter(|selected| available_models.contains(selected))
+                else {
+                    let _ = state.overlay.update(overlay::Input::FailAnswer(
+                        "no available model selected".into(),
+                    ));
                     return Task::none();
                 };
-                if state.providers.resolve(&model).is_none() {
-                    let _ = state.overlay.update(overlay::Input::FailAnswer(format!(
-                        "provider `{}` is not configured",
-                        model.provider
-                    )));
-                    return Task::none();
-                }
                 let _ = state
                     .to_core
                     .try_send(owl_core::Input::Submit { prompt, model });
@@ -216,7 +209,9 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
 }
 
 fn view(state: &App) -> Element<'_, Input> {
-    mouse_area(owl_ui::view(&state.overlay).map(Input::Overlay))
+    let available_models = state.providers.available_models();
+
+    mouse_area(owl_ui::view(&state.overlay, available_models).map(Input::Overlay))
         .on_press(Input::DragWindow)
         .into()
 }

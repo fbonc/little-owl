@@ -3347,6 +3347,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "iced_math",
+ "owl-provider",
  "owl-types",
 ]
 

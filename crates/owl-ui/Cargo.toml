@@ -9,4 +9,5 @@ edition = "2024"
 [dependencies]
 iced = { version = "0.14.0", features = ["tokio", "image", "markdown", "svg", "advanced"] }
 iced_math = "0.5"
+owl-provider = { path = "../owl-provider" }
 owl-types = { path = "../owl-types" }

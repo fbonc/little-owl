@@ -1,5 +1,8 @@
-use iced::widget::{Id, button, column, container, row, space, stack, svg, text, text_input};
+use iced::widget::{
+    Id, button, column, container, pick_list, row, space, stack, svg, text, text_input,
+};
 use iced::{Center, Element, Fill, Task};
+use owl_provider::ModelSelection;
 
 use super::style;
 
@@ -17,6 +20,7 @@ pub enum Input {
     InputChanged(String),
     InputFocusChanged(bool),
     SubmitRequested,
+    ModelSelected(ModelSelection),
     CaptureRegionRequested,
     CaptureFailed,
 }
@@ -38,6 +42,7 @@ impl Prompting {
             Input::InputFocusChanged(focused) => self.input_focused = focused,
             Input::CaptureRegionRequested => self.capture_failed = false,
             Input::CaptureFailed => self.capture_failed = true,
+            Input::ModelSelected(_) => {}
             Input::SubmitRequested => {}
         }
     }
@@ -55,7 +60,11 @@ impl Prompting {
         iced::widget::operation::is_focused(self.input_id.clone()).map(Input::InputFocusChanged)
     }
 
-    pub fn view(&self) -> Element<'_, Input> {
+    pub fn view(
+        &self,
+        available_models: Vec<ModelSelection>,
+        selected_model: Option<ModelSelection>,
+    ) -> Element<'_, Input> {
         let field = text_input("", &self.prompt_value)
             .on_input(Input::InputChanged)
             .on_submit(Input::SubmitRequested)
@@ -127,6 +136,13 @@ impl Prompting {
         .padding([5, 8])
         .style(style::capture_button);
 
+        let models = pick_list(available_models, selected_model, Input::ModelSelected)
+            .placeholder("Configure a provider")
+            .text_size(style::MODEL_PICKER_TEXT_SIZE)
+            .padding([5, 8])
+            .style(style::model_picker)
+            .menu_style(style::model_menu);
+
         let mut capture_row = row![capture].spacing(8).align_y(Center);
         if self.capture_failed {
             capture_row = capture_row.push(
@@ -135,6 +151,7 @@ impl Prompting {
                     .color(style::DANGER_COLOR),
             );
         }
+        capture_row = capture_row.push(space().width(Fill)).push(models);
 
         column![prompt_bar, capture_row]
             .spacing(style::CAPTURE_BUTTON_SPACING)

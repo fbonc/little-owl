@@ -1,5 +1,5 @@
 use iced::border::Radius;
-use iced::widget::{button, container, markdown, scrollable, text_input};
+use iced::widget::{button, container, markdown, overlay::menu, pick_list, scrollable, text_input};
 use iced::{Background, Border, Color, Font, Shadow, Theme};
 
 pub const TEXT_COLOR: Color = Color {
@@ -36,6 +36,18 @@ pub const INPUT_BACKGROUND: Color = Color {
     r: 0.24,
     g: 0.15,
     b: 0.12,
+    a: 1.0,
+};
+pub const MODEL_PICKER_BACKGROUND: Color = Color {
+    r: 0.20,
+    g: 0.115,
+    b: 0.095,
+    a: 1.0,
+};
+pub const MODEL_MENU_HIGHLIGHT: Color = Color {
+    r: 0.34,
+    g: 0.22,
+    b: 0.17,
     a: 1.0,
 };
 pub const INPUT_BORDER_COLOR: Color = Color {
@@ -96,6 +108,7 @@ pub const SEND_BUTTON_SIZE: f32 = 36.0;
 pub const SEND_BUTTON_INSET: f32 = 4.0;
 pub const CAPTURE_BUTTON_TEXT_SIZE: f32 = 13.0;
 pub const CAPTURE_BUTTON_SPACING: f32 = 6.0;
+pub const MODEL_PICKER_TEXT_SIZE: f32 = 13.0;
 
 pub const PLACEHOLDERS: [&str; 7] = [
     "Hoot away…",
@@ -220,6 +233,40 @@ pub fn capture_button(_theme: &Theme, status: button::Status) -> button::Style {
             ..Default::default()
         },
         ..Default::default()
+    }
+}
+
+pub fn model_picker(_theme: &Theme, status: pick_list::Status) -> pick_list::Style {
+    let border_color = match status {
+        pick_list::Status::Active => INPUT_BORDER_COLOR,
+        pick_list::Status::Hovered | pick_list::Status::Opened { .. } => ACCENT_COLOR,
+    };
+
+    pick_list::Style {
+        text_color: TEXT_COLOR,
+        placeholder_color: MUTED_COLOR,
+        handle_color: MUTED_COLOR,
+        background: MODEL_PICKER_BACKGROUND.into(),
+        border: Border {
+            color: border_color,
+            width: 1.0,
+            radius: 6.0.into(),
+        },
+    }
+}
+
+pub fn model_menu(_theme: &Theme) -> menu::Style {
+    menu::Style {
+        background: INPUT_BACKGROUND.into(),
+        border: Border {
+            color: INPUT_BORDER_COLOR,
+            width: 1.0,
+            radius: 6.0.into(),
+        },
+        text_color: TEXT_COLOR,
+        selected_text_color: TEXT_COLOR,
+        selected_background: MODEL_MENU_HIGHLIGHT.into(),
+        shadow: Shadow::default(),
     }
 }
 

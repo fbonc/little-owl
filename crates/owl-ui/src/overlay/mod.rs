@@ -4,6 +4,7 @@ use iced::advanced::text::Wrapping;
 use iced::widget::{button, column, container, image, row, space, text};
 use iced::{Center, Element, Fill, Task};
 
+use owl_provider::ModelSelection;
 use owl_types::Target;
 
 pub mod answering;
@@ -31,7 +32,10 @@ pub enum Input {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
-    Submitted { prompt: Option<String> },
+    Submitted {
+        prompt: Option<String>,
+        model: Option<ModelSelection>,
+    },
     CaptureRegionRequested,
     LinkClicked(String),
     PhaseChanged(Phase),
@@ -49,6 +53,7 @@ pub enum Phase {
 pub struct Overlay {
     pub visible: bool,
     pub target: Option<Target>,
+    selected_model: Option<ModelSelection>,
     prompting: prompting::Prompting,
     answering: answering::Answering,
     pub phase: Phase,
@@ -59,6 +64,7 @@ impl Default for Overlay {
         Self {
             visible: false,
             target: None,
+            selected_model: None,
             prompting: prompting::Prompting::new(random_placeholder()),
             answering: answering::Answering::default(),
             phase: Phase::default(),
@@ -71,6 +77,11 @@ impl Overlay {
         Self::default()
     }
 
+    pub fn with_selected_model(mut self, selected_model: Option<ModelSelection>) -> Self {
+        self.selected_model = selected_model;
+        self
+    }
+
     pub fn update(&mut self, input: Input) -> Option<Output> {
         match input {
             Input::Prompting(prompting::Input::SubmitRequested) => {
@@ -78,12 +89,17 @@ impl Overlay {
                 self.answering.reset();
                 Some(Output::Submitted {
                     prompt: self.commit(),
+                    model: self.selected_model.clone(),
                 })
             }
             Input::Prompting(prompting::Input::CaptureRegionRequested) => {
                 self.prompting
                     .update(prompting::Input::CaptureRegionRequested);
                 Some(Output::CaptureRegionRequested)
+            }
+            Input::Prompting(prompting::Input::ModelSelected(selection)) => {
+                self.selected_model = Some(selection);
+                None
             }
             Input::Prompting(input) => {
                 self.prompting.update(input);
@@ -144,9 +160,16 @@ impl Overlay {
         self.answering.error()
     }
 
-    pub fn view(&self) -> Element<'_, Input> {
+    pub fn view(&self, available_models: Vec<ModelSelection>) -> Element<'_, Input> {
+        let selected_model = self
+            .selected_model
+            .clone()
+            .filter(|selected| available_models.contains(selected));
         let content = match self.phase {
-            Phase::Prompting => self.prompting.view().map(Input::Prompting),
+            Phase::Prompting => self
+                .prompting
+                .view(available_models, selected_model)
+                .map(Input::Prompting),
             Phase::Answering => self.answering.view().map(Input::Answering),
         };
 
@@ -234,6 +257,7 @@ fn random_placeholder() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use owl_provider::ProviderId;
     use owl_types::{TextCapture, TextCaptureMethod};
 
     #[test]
@@ -247,7 +271,10 @@ mod tests {
 
         assert_eq!(
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
-            Some(Output::Submitted { prompt: None })
+            Some(Output::Submitted {
+                prompt: None,
+                model: None,
+            })
         );
         assert!(overlay.visible);
     }
@@ -303,6 +330,28 @@ mod tests {
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
             Some(Output::Submitted {
                 prompt: Some("in one sentence".into()),
+                model: None,
+            })
+        );
+    }
+
+    #[test]
+    fn model_selection_is_stored_and_included_in_submission() {
+        let mut overlay = Overlay::new();
+        let selection = ModelSelection::new(ProviderId::new("openai"), "gpt-test");
+
+        assert!(
+            overlay
+                .update(Input::Prompting(prompting::Input::ModelSelected(
+                    selection.clone()
+                )))
+                .is_none()
+        );
+        assert_eq!(
+            overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
+            Some(Output::Submitted {
+                prompt: None,
+                model: Some(selection),
             })
         );
     }

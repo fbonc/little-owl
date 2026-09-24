@@ -54,6 +54,12 @@ impl ModelSelection {
     }
 }
 
+impl fmt::Display for ModelSelection {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{} · {}", self.model, self.provider)
+    }
+}
+
 pub type ProviderStream =
     Pin<Box<dyn Stream<Item = Result<ProviderOutput, ProviderError>> + Send + 'static>>;
 
@@ -169,5 +175,12 @@ mod tests {
         registry.remove_provider(&provider_id);
         assert!(shared_registry.available_models().is_empty());
         assert!(shared_registry.resolve(&models[0]).is_none());
+    }
+
+    #[test]
+    fn model_selection_has_a_dropdown_label() {
+        let selection = ModelSelection::new(ProviderId::new("openai"), "gpt-test");
+
+        assert_eq!(selection.to_string(), "gpt-test · openai");
     }
 }
