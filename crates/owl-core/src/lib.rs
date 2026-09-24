@@ -23,6 +23,7 @@ pub enum Input {
         prompt: Option<String>,
         model: ModelSelection,
     },
+    RemoveTarget,
     SelectRegion,
 }
 
@@ -77,6 +78,12 @@ impl State {
 
         capture.target = Some(Target::Image(image));
         true
+    }
+
+    fn remove_target(&mut self) {
+        if let Some(capture) = &mut self.current_capture {
+            capture.target = None;
+        }
     }
 
     fn start_provider_request(
@@ -187,6 +194,13 @@ impl Core {
         Ok(applied.then_some(image))
     }
 
+    fn remove_target(&self) {
+        self.state
+            .lock()
+            .expect("core state mutex poisoned")
+            .remove_target();
+    }
+
     fn start_provider_stream(
         self: &Arc<Self>,
         prompt: Option<String>,
@@ -258,6 +272,10 @@ pub fn start(providers: ProviderRegistry) -> (Sender, impl Stream<Item = Output>
 
         match input {
             Input::Submit { prompt, model } => core.start_provider_stream(prompt, model),
+            Input::RemoveTarget => {
+                core.remove_target();
+                stream::empty().boxed()
+            }
             Input::SelectRegion => stream::once(async move {
                 let result = tokio::task::spawn_blocking(move || core.select_region())
                     .await
@@ -500,6 +518,38 @@ mod tests {
             request.target,
             Some(Target::Text(TextCapture { ref text, .. })) if text == "selected text"
         ));
+        assert!(matches!(
+            request.context,
+            Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"
+        ));
+    }
+
+    #[test]
+    fn removing_target_preserves_context_for_provider_request() {
+        let context = ContextCapture::Text {
+            text: "surrounding context".into(),
+            method: ContextCaptureMethod::Accessibility,
+        };
+        let mut state = State::default();
+        let capture_id = state.start_capture();
+        state.commit_capture(
+            capture_id,
+            Capture {
+                target: Some(Target::Text(TextCapture {
+                    text: "selected text".into(),
+                    method: TextCaptureMethod::Accessibility,
+                })),
+                context: Some(context),
+                provenance: None,
+                elapsed_ms: 0,
+            },
+        );
+
+        state.remove_target();
+        let (request, _, _) = state.start_provider_request(Some("explain the context".into()));
+
+        assert!(request.target.is_none());
+        assert_eq!(request.prompt.as_deref(), Some("explain the context"));
         assert!(matches!(
             request.context,
             Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"

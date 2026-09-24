@@ -153,6 +153,12 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
                     None => Task::none(),
                 }
             }
+            Some(OverlayOutput::TargetRemoved) => {
+                if let Err(error) = state.to_core.try_send(owl_core::Input::RemoveTarget) {
+                    eprintln!("failed to remove target from core: {error}");
+                }
+                Task::none()
+            }
             Some(OverlayOutput::CaptureRegionRequested) => {
                 if state.selecting_region {
                     return Task::none();

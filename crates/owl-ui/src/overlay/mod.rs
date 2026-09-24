@@ -26,6 +26,7 @@ pub enum Input {
     AppendAnswer(String),
     FinishAnswer,
     FailAnswer(String),
+    RemoveTargetRequested,
     BackRequested,
     DismissRequested,
 }
@@ -36,6 +37,7 @@ pub enum Output {
         prompt: Option<String>,
         model: Option<ModelSelection>,
     },
+    TargetRemoved,
     CaptureRegionRequested,
     LinkClicked(String),
     PhaseChanged(Phase),
@@ -117,6 +119,7 @@ impl Overlay {
                 self.target = Some(target);
                 None
             }
+            Input::RemoveTargetRequested => self.target.take().map(|_| Output::TargetRemoved),
             Input::CaptureFailed => {
                 self.prompting.update(prompting::Input::CaptureFailed);
                 None
@@ -195,19 +198,28 @@ impl Overlay {
 fn header(overlay: &Overlay) -> Element<'_, Input> {
     let target: Element<'_, Input> = if let Some(target) = &overlay.target {
         let label = match target {
-            Target::Text(text) => text.text.as_str().replace("\n", "").replace("\r", ""),
+            Target::Text(text) => text.text.as_str()
+                .replace("\n", "")
+                .replace("\r", "")
+                .replace("\t", ""),
             Target::Image(_) => style::IMAGE_TARGET_LABEL.to_string(),
         };
 
-        container(
-            text(label)
-                .size(style::TARGET_SIZE)
-                .color(style::MUTED_COLOR)
-                .width(Fill)
-                .wrapping(Wrapping::None),
-        )
+        row![
+            container(
+                text(label)
+                    .size(style::TARGET_SIZE)
+                    .color(style::MUTED_COLOR)
+                    .width(Fill)
+                    .wrapping(Wrapping::None),
+            )
+            .width(Fill)
+            .clip(true),
+            target_clear_button(),
+        ]
+        .spacing(style::HEADER_ACTION_SPACING)
+        .align_y(Center)
         .width(Fill)
-        .clip(true)
         .into()
     } else {
         space().width(Fill).into()
@@ -241,6 +253,14 @@ fn header_button(label: &'static str, input: Input) -> Element<'static, Input> {
         .width(style::HEADER_ACTION_SIZE)
         .height(style::HEADER_ACTION_SIZE)
         .padding(0)
+        .style(style::header_button)
+        .into()
+}
+
+fn target_clear_button() -> Element<'static, Input> {
+    button(text("Clear").size(style::TARGET_CLEAR_SIZE))
+        .on_press(Input::RemoveTargetRequested)
+        .padding([4, 6])
         .style(style::header_button)
         .into()
 }
@@ -291,6 +311,22 @@ mod tests {
 
         assert!(overlay.target.is_none());
         assert!(overlay.visible);
+    }
+
+    #[test]
+    fn removing_target_clears_it_and_notifies_the_host() {
+        let mut overlay = Overlay::new();
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
+            text: "selected text".into(),
+            method: TextCaptureMethod::Accessibility,
+        })));
+
+        assert_eq!(
+            overlay.update(Input::RemoveTargetRequested),
+            Some(Output::TargetRemoved)
+        );
+        assert!(overlay.target.is_none());
+        assert!(overlay.update(Input::RemoveTargetRequested).is_none());
     }
 
     #[test]
