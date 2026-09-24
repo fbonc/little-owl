@@ -7,7 +7,7 @@ use futures_util::future::{AbortHandle, AbortRegistration, Abortable, ready};
 use futures_util::stream::BoxStream;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::{Capturer, new_capturer};
-use owl_provider::{MockProvider, Provider, ProviderOutput, ProviderRequest, ProviderStream};
+use owl_provider::{Provider, ProviderOutput, ProviderRequest, ProviderStream};
 use owl_types::{ContextCapture, ImageCapture, Provenance, Target};
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
@@ -232,11 +232,7 @@ struct CaptureOutcome {
     failure: Option<String>,
 }
 
-pub fn start() -> (Sender, impl Stream<Item = Output>) {
-    start_with_provider(Arc::new(MockProvider::default()))
-}
-
-pub fn start_with_provider(provider: Arc<dyn Provider>) -> (Sender, impl Stream<Item = Output>) {
+pub fn start(provider: Arc<dyn Provider>) -> (Sender, impl Stream<Item = Output>) {
     let (sender, inputs) = mpsc::channel(1);
     let core = Arc::new(Core::new(provider, Arc::from(new_capturer())));
     let hotkey_outputs = hotkey_outputs(Arc::clone(&core));
@@ -315,6 +311,7 @@ fn hotkey_outputs(core: Arc<Core>) -> impl Stream<Item = Output> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use owl_provider::MockProvider;
     use owl_types::{
         ContextCapture, ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod,
     };

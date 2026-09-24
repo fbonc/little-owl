@@ -1,6 +1,9 @@
+use std::sync::Arc;
+
 use iced::widget::mouse_area;
 use iced::{Element, Subscription, Task, Theme, window};
 use owl_core::{Output as CoreOutput, Sender as CoreSender};
+use owl_provider::{MockProvider, Provider};
 use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Target};
 
@@ -52,7 +55,8 @@ fn main() -> iced::Result {
 }
 
 fn boot() -> (App, Task<Input>) {
-    let (to_core, core_outputs) = owl_core::start();
+    let provider: Arc<dyn Provider> = Arc::new(MockProvider::default());
+    let (to_core, core_outputs) = owl_core::start(provider);
 
     (
         App {

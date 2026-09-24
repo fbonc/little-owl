@@ -3285,6 +3285,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "owl-core",
+ "owl-provider",
  "owl-ui",
 ]
 

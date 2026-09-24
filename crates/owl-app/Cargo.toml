@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 iced = { version = "0.14.0", features = ["tokio"] }
 owl-core = { path = "../owl-core" }
+owl-provider = { path = "../owl-provider" }
 owl-ui = { path = "../owl-ui" }
