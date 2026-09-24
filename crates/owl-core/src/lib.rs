@@ -7,7 +7,10 @@ use futures_util::future::{AbortHandle, AbortRegistration, Abortable, ready};
 use futures_util::stream::BoxStream;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::{Capturer, new_capturer};
-use owl_provider::{Provider, ProviderOutput, ProviderRequest, ProviderStream};
+use owl_provider::{
+    ModelSelection, ProviderError, ProviderOutput, ProviderRegistry, ProviderRequest,
+    ProviderStream,
+};
 use owl_types::{ContextCapture, ImageCapture, Provenance, Target};
 
 const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
@@ -16,7 +19,10 @@ pub type Sender = mpsc::Sender<Input>;
 
 #[derive(Debug, Clone)]
 pub enum Input {
-    Submit { prompt: Option<String> },
+    Submit {
+        prompt: Option<String>,
+        model: ModelSelection,
+    },
     SelectRegion,
 }
 
@@ -116,15 +122,15 @@ impl State {
 
 struct Core {
     state: Mutex<State>,
-    provider: Arc<dyn Provider>,
+    providers: ProviderRegistry,
     capturer: Arc<dyn Capturer>,
 }
 
 impl Core {
-    fn new(provider: Arc<dyn Provider>, capturer: Arc<dyn Capturer>) -> Self {
+    fn new(providers: ProviderRegistry, capturer: Arc<dyn Capturer>) -> Self {
         Self {
             state: Mutex::new(State::default()),
-            provider,
+            providers,
             capturer,
         }
     }
@@ -184,14 +190,25 @@ impl Core {
     fn start_provider_stream(
         self: &Arc<Self>,
         prompt: Option<String>,
+        model: ModelSelection,
     ) -> BoxStream<'static, Output> {
         let (request, request_id, abort_registration) = self
             .state
             .lock()
             .expect("core state mutex poisoned")
             .start_provider_request(prompt);
+        let provider_stream = match self.providers.resolve(&model) {
+            Some(provider) => provider.stream(&model.model, request),
+            None => stream::once(async move {
+                Err(ProviderError::new(format!(
+                    "provider `{}` is not configured",
+                    model.provider
+                )))
+            })
+            .boxed(),
+        };
         let outputs = stream::unfold(
-            ProviderResponseState::Streaming(self.provider.stream(request)),
+            ProviderResponseState::Streaming(provider_stream),
             |response| async move {
                 match response {
                     ProviderResponseState::Streaming(mut stream) => match stream.next().await {
@@ -232,15 +249,15 @@ struct CaptureOutcome {
     failure: Option<String>,
 }
 
-pub fn start(provider: Arc<dyn Provider>) -> (Sender, impl Stream<Item = Output>) {
+pub fn start(providers: ProviderRegistry) -> (Sender, impl Stream<Item = Output>) {
     let (sender, inputs) = mpsc::channel(1);
-    let core = Arc::new(Core::new(provider, Arc::from(new_capturer())));
+    let core = Arc::new(Core::new(providers, Arc::from(new_capturer())));
     let hotkey_outputs = hotkey_outputs(Arc::clone(&core));
     let responses = inputs.flat_map(move |input| {
         let core = Arc::clone(&core);
 
         match input {
-            Input::Submit { prompt } => core.start_provider_stream(prompt),
+            Input::Submit { prompt, model } => core.start_provider_stream(prompt, model),
             Input::SelectRegion => stream::once(async move {
                 let result = tokio::task::spawn_blocking(move || core.select_region())
                     .await
@@ -311,12 +328,34 @@ fn hotkey_outputs(core: Arc<Core>) -> impl Stream<Item = Output> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use owl_provider::MockProvider;
+    use owl_provider::{MockProvider, Provider, ProviderCapabilities, ProviderId, ProviderRequest};
     use owl_types::{
         ContextCapture, ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod,
     };
 
     struct StubCapturer;
+
+    struct RecordingProvider {
+        requested_models: Mutex<Vec<String>>,
+    }
+
+    impl Provider for RecordingProvider {
+        fn capabilities(&self, _model: &str) -> ProviderCapabilities {
+            ProviderCapabilities::default()
+        }
+
+        fn available_models(&self) -> Vec<String> {
+            vec!["first".into(), "second".into()]
+        }
+
+        fn stream(&self, model: &str, _request: ProviderRequest) -> ProviderStream {
+            self.requested_models
+                .lock()
+                .expect("recorded models mutex poisoned")
+                .push(model.to_owned());
+            stream::empty().boxed()
+        }
+    }
 
     impl Capturer for StubCapturer {
         fn capture_text(&self) -> owl_capture::Result<TextCapture> {
@@ -353,9 +392,15 @@ mod tests {
         }
     }
 
+    fn provider_registry() -> ProviderRegistry {
+        let providers = ProviderRegistry::new();
+        providers.add_provider(ProviderId::new("mock"), Arc::new(MockProvider::default()));
+        providers
+    }
+
     #[test]
     fn core_capture_orchestrates_and_commits_capture_data() {
-        let core = Core::new(Arc::new(MockProvider::default()), Arc::new(StubCapturer));
+        let core = Core::new(provider_registry(), Arc::new(StubCapturer));
 
         let outcome = core.capture();
 
@@ -382,7 +427,7 @@ mod tests {
 
     #[test]
     fn core_region_selection_replaces_the_committed_target() {
-        let core = Core::new(Arc::new(MockProvider::default()), Arc::new(StubCapturer));
+        let core = Core::new(provider_registry(), Arc::new(StubCapturer));
         core.capture();
 
         let selected = core.select_region().expect("region capture succeeds");
@@ -396,6 +441,30 @@ mod tests {
                 .and_then(|capture| capture.target.as_ref()),
             Some(Target::Image(_))
         ));
+    }
+
+    #[test]
+    fn core_routes_each_request_using_its_model_selection() {
+        let providers = ProviderRegistry::new();
+        let provider = Arc::new(RecordingProvider {
+            requested_models: Mutex::new(Vec::new()),
+        });
+        let provider_id = ProviderId::new("recording");
+        providers.add_provider(provider_id.clone(), provider.clone());
+        let core = Arc::new(Core::new(providers, Arc::new(StubCapturer)));
+
+        let _outputs = core.start_provider_stream(
+            Some("explain".into()),
+            ModelSelection::new(provider_id, "second"),
+        );
+
+        assert_eq!(
+            *provider
+                .requested_models
+                .lock()
+                .expect("recorded models mutex poisoned"),
+            vec!["second"]
+        );
     }
 
     #[test]

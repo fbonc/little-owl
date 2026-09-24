@@ -3,7 +3,7 @@ use std::sync::Arc;
 use iced::widget::mouse_area;
 use iced::{Element, Subscription, Task, Theme, window};
 use owl_core::{Output as CoreOutput, Sender as CoreSender};
-use owl_provider::{MockProvider, Provider};
+use owl_provider::{MockProvider, ModelSelection, ProviderId, ProviderRegistry};
 use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Target};
 
@@ -15,6 +15,8 @@ const ANSWERING_HEIGHT: f32 = 360.0;
 
 struct App {
     overlay: Overlay,
+    providers: ProviderRegistry,
+    selected_model: Option<ModelSelection>,
     to_core: CoreSender,
     window: Option<window::Id>,
     selecting_region: bool,
@@ -55,12 +57,16 @@ fn main() -> iced::Result {
 }
 
 fn boot() -> (App, Task<Input>) {
-    let provider: Arc<dyn Provider> = Arc::new(MockProvider::default());
-    let (to_core, core_outputs) = owl_core::start(provider);
+    let providers = ProviderRegistry::new();
+    providers.add_provider(ProviderId::new("mock"), Arc::new(MockProvider::default()));
+    let selected_model = providers.available_models().into_iter().next();
+    let (to_core, core_outputs) = owl_core::start(providers.clone());
 
     (
         App {
             overlay: Overlay::new(),
+            providers,
+            selected_model,
             to_core,
             window: None,
             selecting_region: false,
@@ -133,7 +139,22 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
         },
         Input::Overlay(input) => match state.overlay.update(input) {
             Some(OverlayOutput::Submitted { prompt }) => {
-                let _ = state.to_core.try_send(owl_core::Input::Submit { prompt });
+                let Some(model) = state.selected_model.clone() else {
+                    let _ = state
+                        .overlay
+                        .update(overlay::Input::FailAnswer("no provider configured".into()));
+                    return Task::none();
+                };
+                if state.providers.resolve(&model).is_none() {
+                    let _ = state.overlay.update(overlay::Input::FailAnswer(format!(
+                        "provider `{}` is not configured",
+                        model.provider
+                    )));
+                    return Task::none();
+                }
+                let _ = state
+                    .to_core
+                    .try_send(owl_core::Input::Submit { prompt, model });
                 match state.window {
                     Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, ANSWERING_HEIGHT)),
                     None => Task::none(),

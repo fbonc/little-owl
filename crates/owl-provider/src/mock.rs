@@ -85,11 +85,15 @@ impl Default for MockProvider {
 }
 
 impl Provider for MockProvider {
-    fn capabilities(&self) -> ProviderCapabilities {
+    fn capabilities(&self, _model: &str) -> ProviderCapabilities {
         ProviderCapabilities { image_input: true }
     }
 
-    fn stream(&self, request: ProviderRequest) -> ProviderStream {
+    fn available_models(&self) -> Vec<String> {
+        vec!["mock".to_owned()]
+    }
+
+    fn stream(&self, _model: &str, request: ProviderRequest) -> ProviderStream {
         let delay = self.chunk_delay;
         let chunks = Self::answer(&request)
             .split_inclusive(' ')
@@ -130,7 +134,7 @@ mod tests {
         };
         let reply = block_on(
             MockProvider::new(Duration::ZERO)
-                .stream(request)
+                .stream("mock", request)
                 .map(Result::unwrap)
                 .map(|output| match output {
                     ProviderOutput::TextDelta(chunk) => chunk,
