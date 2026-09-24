@@ -22,8 +22,6 @@ Little Owl aims to shorten the path from having a question to asking it, then or
 
 For example, highlighting an unfamiliar term in a PDF should give the model the term, surrounding text when available, and the document it came from. If the surrounding text cannot be read, a screenshot can provide context. A selected screen region can serve as an image subject when the question is about a figure or other visual content.
 
-## Engineering choices
-
 - **Capture independent pieces of context.** The selected text, surrounding context, and source identity can succeed or fail separately. A missing document path should not discard a useful selection.
 - **Prefer text, fall back where needed.** macOS Accessibility reads selected text and nearby content; the clipboard can recover a selection when Accessibility cannot. A screenshot can supply missing context, while a user-selected region supplies an image subject.
 - **Keep the interface responsive.** Capture runs outside the UI thread. The core tracks each lookup so a new question cannot display chunks from an older answer.
