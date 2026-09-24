@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use iced::advanced::text::Wrapping;
-use iced::widget::{button, column, container, image, row, space, text};
+use iced::widget::{button, column, container, image, row, space, svg, text};
 use iced::{Center, Element, Fill, Task};
 
 use owl_provider::ModelSelection;
@@ -201,6 +201,7 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
             Target::Text(text) => text
                 .text
                 .as_str()
+                .trim()
                 .replace("\n", "")
                 .replace("\r", "")
                 .replace("\t", ""),
@@ -260,9 +261,17 @@ fn header_button(label: &'static str, input: Input) -> Element<'static, Input> {
 }
 
 fn target_clear_button() -> Element<'static, Input> {
-    button(text("Clear").size(style::TARGET_CLEAR_SIZE))
+    let icon = svg(svg::Handle::from_memory(
+        include_bytes!("../../../../assets/clear-target.svg").as_slice(),
+    ))
+    .width(style::TARGET_CLEAR_ICON_SIZE)
+    .height(style::TARGET_CLEAR_ICON_SIZE);
+
+    button(container(icon).center(Fill))
         .on_press(Input::RemoveTargetRequested)
-        .padding([4, 6])
+        .width(style::HEADER_ACTION_SIZE)
+        .height(style::HEADER_ACTION_SIZE)
+        .padding(0)
         .style(style::header_button)
         .into()
 }

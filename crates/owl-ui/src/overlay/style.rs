@@ -100,7 +100,7 @@ pub const MATH_BLOCK_PADDING: f32 = 8.0;
 pub const INPUT_ACTION_SPACING: f32 = 0.0;
 
 pub const TARGET_SIZE: f32 = 16.0;
-pub const TARGET_CLEAR_SIZE: f32 = 12.0;
+pub const TARGET_CLEAR_ICON_SIZE: f32 = 17.0;
 pub const INPUT_SIZE: f32 = 16.0;
 pub const ANSWER_SIZE: f32 = 15.0;
 pub const ERROR_SIZE: f32 = 14.0;
