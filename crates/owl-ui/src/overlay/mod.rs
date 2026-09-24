@@ -198,7 +198,9 @@ impl Overlay {
 fn header(overlay: &Overlay) -> Element<'_, Input> {
     let target: Element<'_, Input> = if let Some(target) = &overlay.target {
         let label = match target {
-            Target::Text(text) => text.text.as_str()
+            Target::Text(text) => text
+                .text
+                .as_str()
                 .replace("\n", "")
                 .replace("\r", "")
                 .replace("\t", ""),
