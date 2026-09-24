@@ -7,6 +7,7 @@ use std::pin::Pin;
 use std::sync::{Arc, RwLock};
 
 use futures_core::Stream;
+use serde::{Deserialize, Serialize};
 
 pub use error::ProviderError;
 pub use mock::MockProvider;
@@ -20,7 +21,8 @@ pub struct ProviderRequest {
     pub context: Option<ContextCapture>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct ProviderId(String);
 
 impl ProviderId {
@@ -39,7 +41,7 @@ impl fmt::Display for ProviderId {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ModelSelection {
     pub provider: ProviderId,
     pub model: String,
