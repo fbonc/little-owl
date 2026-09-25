@@ -13,8 +13,8 @@ use xcap::Monitor;
 use xcap::image::{ImageFormat, RgbaImage};
 
 use crate::{
-    Capturer, Error, ImageCapture, Permission, Provenance, Result, ScreenRect, TextCapture,
-    TextCaptureMethod, WindowBounds,
+    Capturer, ContextCapture, Error, ImageCapture, Permission, Provenance, Result, ScreenRect,
+    TextCapture, TextCaptureMethod, WindowBounds,
 };
 
 const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(400);
@@ -73,6 +73,13 @@ impl MacosCapturer {
 }
 
 impl MacosCapturer {
+    fn ax_context_text(&self) -> Option<String> {
+        let text = focused_element()?
+            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
+            .ok()??;
+        non_empty(text)
+    }
+
     fn image_window_context(&self) -> Option<ImageCapture> {
         let window = focused_window()?;
         let pos = window
@@ -150,8 +157,12 @@ impl Capturer for MacosCapturer {
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_context(&self) -> Result<ImageCapture> {
-        self.image_window_context().ok_or(Error::AllMethodsFailed)
+    fn capture_context(&self) -> Result<ContextCapture> {
+        let image = self.image_window_context().ok_or(Error::AllMethodsFailed)?;
+        Ok(ContextCapture {
+            image,
+            accessibility_text: self.ax_context_text(),
+        })
     }
 
     fn select_region(&self) -> Result<Option<ImageCapture>> {
@@ -556,7 +567,11 @@ mod tests {
     fn live_capture_context() {
         let cap = MacosCapturer::new();
         match cap.capture_context() {
-            Ok(img) => println!("context image {} bytes", img.png.len()),
+            Ok(context) => println!(
+                "context image {} bytes, AX text: {}",
+                context.image.png.len(),
+                context.accessibility_text.as_deref().unwrap_or("<none>")
+            ),
             Err(e) => println!("no context: {e}"),
         }
     }

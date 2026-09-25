@@ -186,7 +186,7 @@ enum ProviderResponseState {
 mod tests {
     use super::*;
     use owl_provider::{MockProvider, Provider, ProviderId, ProviderRequest};
-    use owl_types::{Provenance, TextCapture, TextCaptureMethod, WindowBounds};
+    use owl_types::{ContextCapture, Provenance, TextCapture, TextCaptureMethod, WindowBounds};
 
     struct StubCapturer;
 
@@ -216,10 +216,13 @@ mod tests {
             })
         }
 
-        fn capture_context(&self) -> owl_capture::Result<ImageCapture> {
-            Ok(ImageCapture {
-                png: b"context".to_vec(),
-                region: None,
+        fn capture_context(&self) -> owl_capture::Result<ContextCapture> {
+            Ok(ContextCapture {
+                image: ImageCapture {
+                    png: b"context".to_vec(),
+                    region: None,
+                },
+                accessibility_text: Some("surrounding context".into()),
             })
         }
 
@@ -279,7 +282,10 @@ mod tests {
         let capture = state.current_capture().expect("capture committed");
         assert!(matches!(
             capture.context,
-            Some(ImageCapture { ref png, .. }) if png == b"context"
+            Some(ContextCapture {
+                image: ImageCapture { ref png, .. },
+                ..
+            }) if png == b"context"
         ));
         assert_eq!(
             capture

@@ -1,13 +1,13 @@
 use futures_util::future::{AbortHandle, AbortRegistration};
 use owl_provider::ProviderRequest;
-use owl_types::{ImageCapture, Provenance, Target};
+use owl_types::{ContextCapture, ImageCapture, Provenance, Target};
 
 use crate::Output;
 
 #[derive(Debug, Clone)]
 pub struct Capture {
     pub target: Option<Target>,
-    pub context: Option<ImageCapture>,
+    pub context: Option<ContextCapture>,
     pub provenance: Option<Provenance>,
     pub elapsed_ms: u32,
 }
@@ -111,13 +111,20 @@ mod tests {
         }
     }
 
+    fn context() -> ContextCapture {
+        ContextCapture {
+            image: image(),
+            accessibility_text: Some("surrounding context".into()),
+        }
+    }
+
     #[test]
     fn provider_request_uses_prompt_target_and_context() {
         let target = Target::Text(TextCapture {
             text: "selected text".into(),
             method: TextCaptureMethod::Accessibility,
         });
-        let context = image();
+        let context = context();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -143,13 +150,13 @@ mod tests {
         ));
         assert!(matches!(
             request.context,
-            Some(ImageCapture { ref png, .. }) if png == b"png"
+            Some(ContextCapture { image: ImageCapture { ref png, .. }, .. }) if png == b"png"
         ));
     }
 
     #[test]
     fn removing_target_preserves_context_for_provider_request() {
-        let context = image();
+        let context = context();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -172,7 +179,7 @@ mod tests {
         assert_eq!(request.prompt.as_deref(), Some("explain the context"));
         assert!(matches!(
             request.context,
-            Some(ImageCapture { ref png, .. }) if png == b"png"
+            Some(ContextCapture { image: ImageCapture { ref png, .. }, .. }) if png == b"png"
         ));
     }
 
@@ -222,7 +229,7 @@ mod tests {
 
     #[test]
     fn region_capture_replaces_text_target_and_preserves_context() {
-        let context = image();
+        let context = context();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -244,7 +251,7 @@ mod tests {
         assert!(matches!(request.target, Some(Target::Image(_))));
         assert!(matches!(
             request.context,
-            Some(ImageCapture { ref png, .. }) if png == b"png"
+            Some(ContextCapture { image: ImageCapture { ref png, .. }, .. }) if png == b"png"
         ));
     }
 

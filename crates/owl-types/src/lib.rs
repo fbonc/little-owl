@@ -36,6 +36,12 @@ pub struct ImageCapture {
 }
 
 #[derive(Debug, Clone)]
+pub struct ContextCapture {
+    pub image: ImageCapture,
+    pub accessibility_text: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub enum Target {
     Text(TextCapture),
     Image(ImageCapture),

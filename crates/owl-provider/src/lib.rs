@@ -15,7 +15,7 @@ pub use error::ProviderError;
 pub use mock::MockProvider;
 pub use openai::{OpenAiConfig, OpenAiProvider};
 
-use owl_types::{ImageCapture, Target};
+use owl_types::{ContextCapture, Target};
 
 pub const OPENAI_PROVIDER_ID: &str = "openai";
 
@@ -23,7 +23,7 @@ pub const OPENAI_PROVIDER_ID: &str = "openai";
 pub struct ProviderRequest {
     pub prompt: Option<String>,
     pub target: Option<Target>,
-    pub context: Option<ImageCapture>,
+    pub context: Option<ContextCapture>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]

@@ -121,11 +121,16 @@ impl ResponsesRequest {
     fn new(model: &str, request: ProviderRequest) -> Self {
         let mut content = Vec::new();
 
-        if let Some(image) = request.context {
+        if let Some(context) = request.context {
             content.push(InputContent::Text {
                 text: "Surrounding context image:".into(),
             });
-            content.push(InputContent::from_image(image));
+            content.push(InputContent::from_image(context.image));
+            if let Some(text) = context.accessibility_text {
+                content.push(InputContent::Text {
+                    text: format!("Supplemental accessibility context:\n{text}"),
+                });
+            }
         }
 
         if let Some(target) = request.target {
@@ -245,7 +250,7 @@ fn api_error(status: reqwest::StatusCode, body: &str) -> ProviderError {
 #[cfg(test)]
 mod tests {
     use futures_util::StreamExt;
-    use owl_types::{ImageCapture, Target, TextCapture, TextCaptureMethod};
+    use owl_types::{ContextCapture, ImageCapture, Target, TextCapture, TextCaptureMethod};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 
@@ -255,9 +260,12 @@ mod tests {
         ProviderRequest {
             prompt: Some("What does this mean?".into()),
             target,
-            context: Some(ImageCapture {
-                png: b"context".to_vec(),
-                region: None,
+            context: Some(ContextCapture {
+                image: ImageCapture {
+                    png: b"context".to_vec(),
+                    region: None,
+                },
+                accessibility_text: Some("surrounding text".into()),
             }),
         }
     }
@@ -284,10 +292,14 @@ mod tests {
         assert_eq!(json["input"][0]["content"][1]["type"], "input_image");
         assert_eq!(
             json["input"][0]["content"][2]["text"],
-            "Target:\nselected text"
+            "Supplemental accessibility context:\nsurrounding text"
         );
         assert_eq!(
             json["input"][0]["content"][3]["text"],
+            "Target:\nselected text"
+        );
+        assert_eq!(
+            json["input"][0]["content"][4]["text"],
             "Question:\nWhat does this mean?"
         );
     }
@@ -302,7 +314,7 @@ mod tests {
             }))),
         );
         let json = serde_json::to_value(request).expect("serialize request");
-        let image = &json["input"][0]["content"][3];
+        let image = &json["input"][0]["content"][4];
 
         assert_eq!(image["type"], "input_image");
         assert_eq!(image["image_url"], "data:image/png;base64,cG5n");
