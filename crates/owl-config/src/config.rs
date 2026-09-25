@@ -38,9 +38,14 @@ impl AppConfig {
     }
 
     pub fn load_from(path: impl AsRef<Path>) -> Result<Self> {
+        let path = path.as_ref();
         let contents = match fs::read_to_string(path) {
             Ok(contents) => contents,
-            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Self::default()),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                let config = Self::default();
+                config.save_to(path)?;
+                return Ok(config);
+            }
             Err(error) => return Err(error.into()),
         };
         let config = toml::from_str::<Self>(&contents)
@@ -114,13 +119,18 @@ mod tests {
     }
 
     #[test]
-    fn missing_file_loads_the_default_configuration() {
+    fn missing_file_creates_the_default_configuration() {
         let directory = tempfile::tempdir().expect("temporary directory");
+        let path = directory.path().join("nested/config.toml");
 
-        let config = AppConfig::load_from(directory.path().join("missing.toml"))
-            .expect("missing config should load defaults");
+        let config = AppConfig::load_from(&path).expect("missing config should create defaults");
 
         assert_eq!(config, AppConfig::default());
+        assert!(path.is_file());
+        assert_eq!(
+            AppConfig::load_from(path).expect("load created config"),
+            AppConfig::default()
+        );
     }
 
     #[test]
