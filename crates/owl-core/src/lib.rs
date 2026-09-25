@@ -4,7 +4,7 @@ use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt, stream};
 use owl_capture::new_capturer;
 use owl_provider::{ModelSelection, ProviderRegistry};
-use owl_types::{ImageCapture, Target};
+use owl_types::{ImageCapture, Target, WindowBounds};
 
 use crate::core::Core;
 pub use crate::state::Capture;
@@ -27,7 +27,9 @@ pub enum Input {
 
 #[derive(Debug, Clone)]
 pub enum Output {
-    ShowRequested,
+    ShowRequested {
+        focused_window: Option<WindowBounds>,
+    },
     TargetCaptured(Target),
     RegionSelectionFinished(Result<Option<ImageCapture>, String>),
     AnswerChunk(String),

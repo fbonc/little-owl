@@ -24,7 +24,12 @@ pub(crate) fn outputs(core: Arc<Core>) -> impl Stream<Item = Output> {
                                 let _ = outputs.unbounded_send(Output::RequestFailed(error));
                             }
 
-                            if outputs.unbounded_send(Output::ShowRequested).is_err() {
+                            if outputs
+                                .unbounded_send(Output::ShowRequested {
+                                    focused_window: result.focused_window,
+                                })
+                                .is_err()
+                            {
                                 break;
                             }
 

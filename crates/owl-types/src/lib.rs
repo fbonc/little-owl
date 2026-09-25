@@ -20,6 +20,14 @@ pub struct ScreenRect {
     pub display: u32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct WindowBounds {
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+}
+
 #[derive(Debug, Clone)]
 pub struct TextCapture {
     pub text: String,
