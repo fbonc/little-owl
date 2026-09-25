@@ -1,7 +1,7 @@
 mod error;
+mod instructions;
 mod mock;
 mod openai;
-mod instructions;
 
 use std::collections::HashMap;
 use std::fmt;
@@ -16,6 +16,8 @@ pub use mock::MockProvider;
 pub use openai::{OpenAiConfig, OpenAiProvider};
 
 use owl_types::{ContextCapture, Target};
+
+pub const OPENAI_PROVIDER_ID: &str = "openai";
 
 #[derive(Debug, Clone)]
 pub struct ProviderRequest {

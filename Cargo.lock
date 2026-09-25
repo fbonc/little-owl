@@ -3580,6 +3580,7 @@ name = "owl-app"
 version = "0.1.0"
 dependencies = [
  "iced",
+ "owl-config",
  "owl-core",
  "owl-provider",
  "owl-ui",

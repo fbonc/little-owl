@@ -92,6 +92,7 @@ impl AppConfig {
 #[serde(default)]
 pub struct ProviderSettings {
     pub enabled: bool,
+    pub models: Vec<String>,
 }
 
 #[cfg(test)]
@@ -103,7 +104,10 @@ mod tests {
             selected_model: Some(ModelSelection::new(ProviderId::new("openai"), "gpt-test")),
             providers: BTreeMap::from([(
                 ProviderId::new("openai"),
-                ProviderSettings { enabled: true },
+                ProviderSettings {
+                    enabled: true,
+                    models: vec!["gpt-test".into()],
+                },
             )]),
             ..AppConfig::default()
         }
@@ -173,6 +177,29 @@ mod tests {
             Err(Error::UnsupportedVersion(version))
                 if version == AppConfig::CURRENT_VERSION + 1
         ));
+    }
+
+    #[test]
+    fn provider_models_default_to_empty_for_existing_configuration() {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let path = directory.path().join("config.toml");
+        fs::write(
+            &path,
+            r#"
+version = 1
+
+[providers.openai]
+enabled = true
+"#,
+        )
+        .expect("seed config");
+
+        let config = AppConfig::load_from(path).expect("load config");
+
+        assert_eq!(
+            config.providers[&ProviderId::new("openai")].models,
+            Vec::<String>::new()
+        );
     }
 
     #[test]
