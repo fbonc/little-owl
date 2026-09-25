@@ -8,4 +8,9 @@ iced = { version = "0.14.0", features = ["tokio"] }
 owl-config = { path = "../owl-config" }
 owl-core = { path = "../owl-core" }
 owl-provider = { path = "../owl-provider" }
+owl-types = { path = "../owl-types" }
 owl-ui = { path = "../owl-ui" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = "0.3"

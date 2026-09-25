@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use iced::advanced::text::Wrapping;
 use iced::widget::{button, column, container, image, row, space, svg, text};
-use iced::{Center, Element, Fill, Task};
+use iced::{Center, Element, Fill, Subscription, Task};
 
 use owl_provider::ModelSelection;
 use owl_types::Target;
@@ -108,6 +108,10 @@ impl Overlay {
                 None
             }
             Input::Answering(answering::Input::LinkClicked(uri)) => Some(Output::LinkClicked(uri)),
+            Input::Answering(input) => {
+                self.answering.update(input);
+                None
+            }
             Input::Show => {
                 self.visible = true;
                 self.target = None;
@@ -119,7 +123,10 @@ impl Overlay {
                 self.target = Some(target);
                 None
             }
-            Input::RemoveTargetRequested => self.target.take().map(|_| Output::TargetRemoved),
+            Input::RemoveTargetRequested if self.phase == Phase::Prompting => {
+                self.target.take().map(|_| Output::TargetRemoved)
+            }
+            Input::RemoveTargetRequested => None,
             Input::CaptureFailed => {
                 self.prompting.update(prompting::Input::CaptureFailed);
                 None
@@ -149,6 +156,14 @@ impl Overlay {
 
     pub fn check_prompt_input_focus(&self) -> Task<Input> {
         self.prompting.check_focus().map(Input::Prompting)
+    }
+
+    pub fn subscription(&self) -> Subscription<Input> {
+        if self.phase == Phase::Answering {
+            self.answering.subscription().map(Input::Answering)
+        } else {
+            Subscription::none()
+        }
     }
 
     pub fn answer(&self) -> &str {
@@ -208,7 +223,7 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
             Target::Image(_) => style::IMAGE_TARGET_LABEL.to_string(),
         };
 
-        row![
+        let mut target = row![
             container(
                 text(label)
                     .size(style::TARGET_SIZE)
@@ -217,13 +232,18 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
                     .wrapping(Wrapping::None),
             )
             .width(Fill)
-            .clip(true),
-            target_clear_button(),
-        ]
-        .spacing(style::HEADER_ACTION_SPACING)
-        .align_y(Center)
-        .width(Fill)
-        .into()
+            .clip(true)
+        ];
+
+        if overlay.phase == Phase::Prompting {
+            target = target.push(target_clear_button());
+        }
+
+        target
+            .spacing(style::HEADER_ACTION_SPACING)
+            .align_y(Center)
+            .width(Fill)
+            .into()
     } else {
         space().width(Fill).into()
     };
@@ -338,6 +358,19 @@ mod tests {
         );
         assert!(overlay.target.is_none());
         assert!(overlay.update(Input::RemoveTargetRequested).is_none());
+    }
+
+    #[test]
+    fn target_cannot_be_removed_while_answering() {
+        let mut overlay = Overlay::new();
+        overlay.update(Input::SetTarget(Target::Text(TextCapture {
+            text: "selected text".into(),
+            method: TextCaptureMethod::Accessibility,
+        })));
+        overlay.phase = Phase::Answering;
+
+        assert!(overlay.update(Input::RemoveTargetRequested).is_none());
+        assert!(overlay.target.is_some());
     }
 
     #[test]

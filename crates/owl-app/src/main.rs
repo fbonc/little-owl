@@ -7,6 +7,7 @@ use owl_core::{Output as CoreOutput, Sender as CoreSender};
 use owl_provider::{
     ModelSelection, OPENAI_PROVIDER_ID, OpenAiConfig, OpenAiProvider, ProviderId, ProviderRegistry,
 };
+use owl_types::WindowBounds;
 use owl_ui::overlay;
 use owl_ui::{Overlay, OverlayOutput, Target};
 
@@ -127,19 +128,20 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
     match input {
         Input::WindowOpened(id) => {
             state.window = id;
-            Task::none()
+            match id {
+                Some(id) => configure_window_for_active_space(id),
+                None => Task::none(),
+            }
         }
         Input::DragWindow => match state.window {
             Some(id) => window::drag(id),
             None => Task::none(),
         },
         Input::Core(output) => match output {
-            CoreOutput::ShowRequested => {
+            CoreOutput::ShowRequested { focused_window } => {
                 let _ = state.overlay.update(overlay::Input::Show);
                 match state.window {
-                    Some(id) => window::resize(id, iced::Size::new(WINDOW_WIDTH, PROMPTING_HEIGHT))
-                        .chain(window::set_mode(id, window::Mode::Windowed))
-                        .chain(window::gain_focus(id)),
+                    Some(id) => show_overlay(id, focused_window),
                     None => Task::none(),
                 }
             }
@@ -269,17 +271,75 @@ fn view(state: &App) -> Element<'_, Input> {
         .into()
 }
 
-fn subscription(_state: &App) -> Subscription<Input> {
-    iced::event::listen_with(|event, _status, _window| match event {
-        iced::Event::Mouse(iced::mouse::Event::ButtonPressed(_))
-        | iced::Event::Keyboard(iced::keyboard::Event::KeyPressed { .. }) => {
-            Some(Input::CheckPromptInputFocus)
-        }
-        iced::Event::Window(window::Event::CloseRequested) => {
-            Some(Input::Overlay(overlay::Input::DismissRequested))
-        }
-        _ => None,
+fn subscription(state: &App) -> Subscription<Input> {
+    Subscription::batch([
+        iced::event::listen_with(|event, _status, _window| match event {
+            iced::Event::Mouse(iced::mouse::Event::ButtonPressed(_))
+            | iced::Event::Keyboard(iced::keyboard::Event::KeyPressed { .. }) => {
+                Some(Input::CheckPromptInputFocus)
+            }
+            iced::Event::Window(window::Event::CloseRequested) => {
+                Some(Input::Overlay(overlay::Input::DismissRequested))
+            }
+            _ => None,
+        }),
+        state.overlay.subscription().map(Input::Overlay),
+    ])
+}
+
+fn show_overlay(id: window::Id, focused_window: Option<WindowBounds>) -> Task<Input> {
+    let task = window::set_mode(id, window::Mode::Hidden).chain(window::resize(
+        id,
+        iced::Size::new(WINDOW_WIDTH, PROMPTING_HEIGHT),
+    ));
+    let task = match focused_window {
+        Some(bounds) => task.chain(window::move_to(id, overlay_position(bounds))),
+        None => task,
+    };
+
+    task.chain(window::set_mode(id, window::Mode::Windowed))
+        .chain(window::gain_focus(id))
+}
+
+fn overlay_position(bounds: WindowBounds) -> iced::Point {
+    iced::Point::new(
+        (bounds.x + (bounds.w - f64::from(WINDOW_WIDTH)) / 2.0) as f32,
+        (bounds.y + (bounds.h - f64::from(PROMPTING_HEIGHT)) / 2.0) as f32,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn configure_window_for_active_space(id: window::Id) -> Task<Input> {
+    window::run(id, |window| {
+        use iced::window::raw_window_handle::RawWindowHandle;
+        use objc2::rc::Retained;
+        use objc2_app_kit::{NSView, NSWindowCollectionBehavior};
+
+        let Ok(handle) = window.window_handle() else {
+            return;
+        };
+        let RawWindowHandle::AppKit(handle) = handle.as_raw() else {
+            return;
+        };
+        // The AppKit raw handle owns a valid NSView for the duration of this callback.
+        let Some(view): Option<Retained<NSView>> =
+            (unsafe { Retained::retain(handle.ns_view.as_ptr().cast()) })
+        else {
+            return;
+        };
+        let Some(window) = view.window() else {
+            return;
+        };
+        window.setCollectionBehavior(
+            window.collectionBehavior() | NSWindowCollectionBehavior::MoveToActiveSpace,
+        );
     })
+    .discard()
+}
+
+#[cfg(not(target_os = "macos"))]
+fn configure_window_for_active_space(_id: window::Id) -> Task<Input> {
+    Task::none()
 }
 
 #[cfg(test)]
@@ -304,6 +364,19 @@ mod tests {
         fn remove(&self, _provider: &ProviderId) -> Result<()> {
             Ok(())
         }
+    }
+
+    #[test]
+    fn overlay_is_centered_on_the_focused_window() {
+        assert_eq!(
+            overlay_position(WindowBounds {
+                x: 100.0,
+                y: 200.0,
+                w: 1_200.0,
+                h: 800.0,
+            }),
+            iced::Point::new(450.0, 510.0)
+        );
     }
 
     #[test]

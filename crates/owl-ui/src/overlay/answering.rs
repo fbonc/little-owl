@@ -1,11 +1,14 @@
-use iced::widget::{container, markdown, scrollable, text};
-use iced::{Element, Fill};
+use std::time::Duration;
+
+use iced::widget::{container, markdown, scrollable, svg, text};
+use iced::{Element, Fill, Radians, Subscription};
 
 use super::{latex, style};
 
 #[derive(Debug, Clone)]
 pub enum Input {
     LinkClicked(markdown::Uri),
+    LoadingTick,
 }
 
 #[derive(Debug, Default)]
@@ -14,9 +17,17 @@ pub(super) struct Answering {
     markdown: markdown::Content,
     done: bool,
     error: Option<String>,
+    loading_frame: u8,
 }
 
 impl Answering {
+    pub fn update(&mut self, input: Input) {
+        match input {
+            Input::LoadingTick => self.loading_frame = self.loading_frame.wrapping_add(1) % 24,
+            Input::LinkClicked(_) => {}
+        }
+    }
+
     pub fn push_token(&mut self, token: &str) {
         self.answer.push_str(token);
         self.markdown = markdown::Content::parse(&latex::normalize_delimiters(&self.answer));
@@ -46,12 +57,32 @@ impl Answering {
         self.error.as_deref()
     }
 
+    pub fn subscription(&self) -> Subscription<Input> {
+        if self.is_waiting() {
+            iced::time::every(Duration::from_millis(80)).map(|_| Input::LoadingTick)
+        } else {
+            Subscription::none()
+        }
+    }
+
     pub fn view(&self) -> Element<'_, Input> {
         if let Some(error) = self.error() {
             return text(error)
                 .size(style::ERROR_SIZE)
                 .color(style::DANGER_COLOR)
                 .into();
+        }
+
+        if self.is_waiting() {
+            let angle = Radians(f32::from(self.loading_frame) * std::f32::consts::TAU / 24.0);
+            let loader = svg(svg::Handle::from_memory(
+                include_bytes!("../../../../assets/loading.svg").as_slice(),
+            ))
+            .width(style::LOADING_ICON_SIZE)
+            .height(style::LOADING_ICON_SIZE)
+            .rotation(angle);
+
+            return container(loader).center(Fill).into();
         }
 
         let answer = container(markdown::view_with(
@@ -78,6 +109,10 @@ impl Answering {
             ))
             .style(style::scroll)
             .into()
+    }
+
+    fn is_waiting(&self) -> bool {
+        self.answer.is_empty() && !self.done && self.error.is_none()
     }
 }
 
@@ -116,5 +151,16 @@ mod tests {
         assert!(answering.markdown.items().is_empty());
         assert!(!answering.is_done());
         assert!(answering.error().is_none());
+        assert!(answering.is_waiting());
+    }
+
+    #[test]
+    fn waiting_ends_when_the_first_token_arrives() {
+        let mut answering = Answering::default();
+        assert!(answering.is_waiting());
+
+        answering.push_token("first");
+
+        assert!(!answering.is_waiting());
     }
 }

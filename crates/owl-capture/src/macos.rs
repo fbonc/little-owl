@@ -14,7 +14,7 @@ use xcap::image::{ImageFormat, RgbaImage};
 
 use crate::{
     Capturer, ContextCapture, ContextCaptureMethod, Error, ImageCapture, Permission, Provenance,
-    Result, ScreenRect, TextCapture, TextCaptureMethod,
+    Result, ScreenRect, TextCapture, TextCaptureMethod, WindowBounds,
 };
 
 const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(400);
@@ -143,6 +143,23 @@ impl MacosCapturer {
             .ok()??;
         doc_url_to_path(&doc)
     }
+
+    fn focused_window_bounds(&self) -> Option<WindowBounds> {
+        let window = focused_window()?;
+        let position = window
+            .point_attribute(ax::ax_attribute::AX_POSITION_ATTRIBUTE)
+            .ok()??;
+        let size = window
+            .size_attribute(ax::ax_attribute::AX_SIZE_ATTRIBUTE)
+            .ok()??;
+
+        Some(WindowBounds {
+            x: position.x,
+            y: position.y,
+            w: size.width,
+            h: size.height,
+        })
+    }
 }
 
 impl Capturer for MacosCapturer {
@@ -228,6 +245,10 @@ impl Capturer for MacosCapturer {
             window_title: self.focused_window_title().unwrap_or_default(),
             path: self.document_path(),
         })
+    }
+
+    fn capture_window_bounds(&self) -> Result<WindowBounds> {
+        self.focused_window_bounds().ok_or(Error::AllMethodsFailed)
     }
 }
 

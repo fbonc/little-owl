@@ -8,7 +8,7 @@ use owl_capture::Capturer;
 use owl_provider::{
     ModelSelection, ProviderError, ProviderOutput, ProviderRegistry, ProviderStream,
 };
-use owl_types::{ImageCapture, Target};
+use owl_types::{ImageCapture, Target, WindowBounds};
 
 use crate::state::State;
 use crate::{Capture, Input, Output};
@@ -57,6 +57,7 @@ impl Core {
             .expect("core state mutex poisoned")
             .start_capture();
         let started = Instant::now();
+        let focused_window = self.capturer.capture_window_bounds().ok();
         let provenance = self.capturer.capture_provenance().ok();
         let (target, failure) = match self.capturer.capture_text() {
             Ok(capture) => (Some(Target::Text(capture)), None),
@@ -76,7 +77,11 @@ impl Core {
             .expect("core state mutex poisoned")
             .commit_capture(capture_id, capture);
 
-        CaptureOutcome { target, failure }
+        CaptureOutcome {
+            target,
+            failure,
+            focused_window,
+        }
     }
 
     fn select_region(&self) -> Result<Option<ImageCapture>, String> {
@@ -169,6 +174,7 @@ impl Core {
 pub(crate) struct CaptureOutcome {
     pub(crate) target: Option<Target>,
     pub(crate) failure: Option<String>,
+    pub(crate) focused_window: Option<WindowBounds>,
 }
 
 enum ProviderResponseState {
@@ -182,6 +188,7 @@ mod tests {
     use owl_provider::{MockProvider, Provider, ProviderCapabilities, ProviderId, ProviderRequest};
     use owl_types::{
         ContextCapture, ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod,
+        WindowBounds,
     };
 
     struct StubCapturer;
@@ -237,6 +244,15 @@ mod tests {
                 path: Some("/tmp/example".into()),
             })
         }
+
+        fn capture_window_bounds(&self) -> owl_capture::Result<WindowBounds> {
+            Ok(WindowBounds {
+                x: 100.0,
+                y: 200.0,
+                w: 1200.0,
+                h: 800.0,
+            })
+        }
     }
 
     fn provider_registry() -> ProviderRegistry {
@@ -256,6 +272,15 @@ mod tests {
             outcome.target,
             Some(Target::Text(TextCapture { ref text, .. })) if text == "selected text"
         ));
+        assert_eq!(
+            outcome.focused_window,
+            Some(WindowBounds {
+                x: 100.0,
+                y: 200.0,
+                w: 1200.0,
+                h: 800.0,
+            })
+        );
 
         let state = core.state.lock().expect("core state mutex poisoned");
         let capture = state.current_capture().expect("capture committed");

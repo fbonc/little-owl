@@ -5,7 +5,7 @@ use thiserror::Error;
 // here so `owl_capture::Target` etc. and the trait signatures below keep working.
 pub use owl_types::{
     ContextCapture, ContextCaptureMethod, ImageCapture, Provenance, ScreenRect, Target,
-    TextCapture, TextCaptureMethod,
+    TextCapture, TextCaptureMethod, WindowBounds,
 };
 
 #[cfg(target_os = "macos")]
@@ -39,6 +39,8 @@ pub trait Capturer: Send + Sync {
     fn select_region(&self) -> Result<Option<ImageCapture>>;
 
     fn capture_provenance(&self) -> Result<Provenance>;
+
+    fn capture_window_bounds(&self) -> Result<WindowBounds>;
 }
 
 pub fn new_capturer() -> Box<dyn Capturer> {
