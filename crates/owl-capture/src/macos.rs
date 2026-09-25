@@ -13,8 +13,8 @@ use xcap::Monitor;
 use xcap::image::{ImageFormat, RgbaImage};
 
 use crate::{
-    Capturer, ContextCapture, ContextCaptureMethod, Error, ImageCapture, Permission, Provenance,
-    Result, ScreenRect, TextCapture, TextCaptureMethod, WindowBounds,
+    Capturer, Error, ImageCapture, Permission, Provenance, Result, ScreenRect, TextCapture,
+    TextCaptureMethod, WindowBounds,
 };
 
 const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(400);
@@ -72,41 +72,7 @@ impl MacosCapturer {
     }
 }
 
-// Context capture
 impl MacosCapturer {
-    fn ax_value_text(&self) -> Option<String> {
-        let text = focused_element()?
-            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
-            .ok()??;
-        non_empty(text)
-    }
-
-    // fallback: clipboard
-    fn clipboard_context(&self) -> Option<String> {
-        let mut clipboard = Clipboard::new().ok()?;
-        let original = clipboard.get_text().ok();
-
-        let captured = if send_cmd_chord('a') && send_copy_shortcut() {
-            poll_for_copied_text(&mut clipboard, original.as_deref())
-        } else {
-            None
-        };
-
-        if captured.is_some() {
-            match &original {
-                Some(text) => {
-                    let _ = clipboard.set_text(text.clone());
-                }
-                None => {
-                    let _ = clipboard.clear();
-                }
-            }
-        }
-
-        captured.and_then(non_empty)
-    }
-
-    // fallback: screenshot the focused window as context
     fn image_window_context(&self) -> Option<ImageCapture> {
         let window = focused_window()?;
         let pos = window
@@ -184,23 +150,8 @@ impl Capturer for MacosCapturer {
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_context(&self) -> Result<ContextCapture> {
-        if let Some(text) = self.ax_value_text() {
-            return Ok(ContextCapture::Text {
-                text,
-                method: ContextCaptureMethod::Accessibility,
-            });
-        }
-        if let Some(text) = self.clipboard_context() {
-            return Ok(ContextCapture::Text {
-                text,
-                method: ContextCaptureMethod::Clipboard,
-            });
-        }
-        if let Some(image) = self.image_window_context() {
-            return Ok(ContextCapture::Image(image));
-        }
-        Err(Error::AllMethodsFailed)
+    fn capture_context(&self) -> Result<ImageCapture> {
+        self.image_window_context().ok_or(Error::AllMethodsFailed)
     }
 
     fn select_region(&self) -> Result<Option<ImageCapture>> {
@@ -601,14 +552,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires Accessibility permission and a focused text element"]
+    #[ignore = "requires Accessibility and Screen Recording permission"]
     fn live_capture_context() {
         let cap = MacosCapturer::new();
         match cap.capture_context() {
-            Ok(ContextCapture::Text { text, method }) => {
-                println!("context {} chars via {:?}", text.len(), method)
-            }
-            Ok(ContextCapture::Image(img)) => println!("context image {} bytes", img.png.len()),
+            Ok(img) => println!("context image {} bytes", img.png.len()),
             Err(e) => println!("no context: {e}"),
         }
     }

@@ -3,13 +3,11 @@ use std::sync::Arc;
 use base64::Engine;
 use eventsource_stream::Eventsource;
 use futures_util::{StreamExt, stream};
-use owl_types::{ContextCapture, ImageCapture, Target};
+use owl_types::{ImageCapture, Target};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::{
-    Provider, ProviderCapabilities, ProviderError, ProviderOutput, ProviderRequest, ProviderStream,
-};
+use crate::{Provider, ProviderError, ProviderOutput, ProviderRequest, ProviderStream};
 
 const DEFAULT_BASE_URL: &str = "https://api.openai.com";
 const DEFAULT_PROMPT: &str = "Explain the provided target or context.";
@@ -89,10 +87,6 @@ impl OpenAiProvider {
 }
 
 impl Provider for OpenAiProvider {
-    fn capabilities(&self, _model: &str) -> ProviderCapabilities {
-        ProviderCapabilities { image_input: true }
-    }
-
     fn available_models(&self) -> Vec<String> {
         self.models.clone()
     }
@@ -127,18 +121,11 @@ impl ResponsesRequest {
     fn new(model: &str, request: ProviderRequest) -> Self {
         let mut content = Vec::new();
 
-        if let Some(context) = request.context {
-            match context {
-                ContextCapture::Text { text, .. } => content.push(InputContent::Text {
-                    text: format!("Surrounding context:\n{text}"),
-                }),
-                ContextCapture::Image(image) => {
-                    content.push(InputContent::Text {
-                        text: "Surrounding context image:".into(),
-                    });
-                    content.push(InputContent::from_image(image));
-                }
-            }
+        if let Some(image) = request.context {
+            content.push(InputContent::Text {
+                text: "Surrounding context image:".into(),
+            });
+            content.push(InputContent::from_image(image));
         }
 
         if let Some(target) = request.target {
@@ -258,7 +245,7 @@ fn api_error(status: reqwest::StatusCode, body: &str) -> ProviderError {
 #[cfg(test)]
 mod tests {
     use futures_util::StreamExt;
-    use owl_types::{ContextCaptureMethod, ImageCapture, Target, TextCapture, TextCaptureMethod};
+    use owl_types::{ImageCapture, Target, TextCapture, TextCaptureMethod};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 
@@ -268,15 +255,15 @@ mod tests {
         ProviderRequest {
             prompt: Some("What does this mean?".into()),
             target,
-            context: Some(ContextCapture::Text {
-                text: "surrounding text".into(),
-                method: ContextCaptureMethod::Accessibility,
+            context: Some(ImageCapture {
+                png: b"context".to_vec(),
+                region: None,
             }),
         }
     }
 
     #[test]
-    fn builds_text_request_for_responses_api() {
+    fn builds_request_with_image_context_for_responses_api() {
         let request = ResponsesRequest::new(
             "gpt-test",
             request(Some(Target::Text(TextCapture {
@@ -292,14 +279,15 @@ mod tests {
         assert_eq!(json["input"][0]["role"], "user");
         assert_eq!(
             json["input"][0]["content"][0]["text"],
-            "Surrounding context:\nsurrounding text"
+            "Surrounding context image:"
         );
+        assert_eq!(json["input"][0]["content"][1]["type"], "input_image");
         assert_eq!(
-            json["input"][0]["content"][1]["text"],
+            json["input"][0]["content"][2]["text"],
             "Target:\nselected text"
         );
         assert_eq!(
-            json["input"][0]["content"][2]["text"],
+            json["input"][0]["content"][3]["text"],
             "Question:\nWhat does this mean?"
         );
     }
@@ -314,7 +302,7 @@ mod tests {
             }))),
         );
         let json = serde_json::to_value(request).expect("serialize request");
-        let image = &json["input"][0]["content"][2];
+        let image = &json["input"][0]["content"][3];
 
         assert_eq!(image["type"], "input_image");
         assert_eq!(image["image_url"], "data:image/png;base64,cG5n");

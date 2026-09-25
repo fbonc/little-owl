@@ -4,12 +4,6 @@ pub enum TextCaptureMethod {
     Clipboard,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ContextCaptureMethod {
-    Accessibility,
-    Clipboard,
-}
-
 // `display` is the platform display id (e.g., a CGDirectDisplayID on macOS).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScreenRect {
@@ -44,15 +38,6 @@ pub struct ImageCapture {
 #[derive(Debug, Clone)]
 pub enum Target {
     Text(TextCapture),
-    Image(ImageCapture),
-}
-
-#[derive(Debug, Clone)]
-pub enum ContextCapture {
-    Text {
-        text: String,
-        method: ContextCaptureMethod,
-    },
     Image(ImageCapture),
 }
 

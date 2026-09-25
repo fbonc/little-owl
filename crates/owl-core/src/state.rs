@@ -1,13 +1,13 @@
 use futures_util::future::{AbortHandle, AbortRegistration};
 use owl_provider::ProviderRequest;
-use owl_types::{ContextCapture, ImageCapture, Provenance, Target};
+use owl_types::{ImageCapture, Provenance, Target};
 
 use crate::Output;
 
 #[derive(Debug, Clone)]
 pub struct Capture {
     pub target: Option<Target>,
-    pub context: Option<ContextCapture>,
+    pub context: Option<ImageCapture>,
     pub provenance: Option<Provenance>,
     pub elapsed_ms: u32,
 }
@@ -102,9 +102,7 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use owl_types::{
-        ContextCapture, ContextCaptureMethod, Provenance, TextCapture, TextCaptureMethod,
-    };
+    use owl_types::{Provenance, TextCapture, TextCaptureMethod};
 
     fn image() -> ImageCapture {
         ImageCapture {
@@ -119,10 +117,7 @@ mod tests {
             text: "selected text".into(),
             method: TextCaptureMethod::Accessibility,
         });
-        let context = ContextCapture::Text {
-            text: "surrounding context".into(),
-            method: ContextCaptureMethod::Accessibility,
-        };
+        let context = image();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -148,16 +143,13 @@ mod tests {
         ));
         assert!(matches!(
             request.context,
-            Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"
+            Some(ImageCapture { ref png, .. }) if png == b"png"
         ));
     }
 
     #[test]
     fn removing_target_preserves_context_for_provider_request() {
-        let context = ContextCapture::Text {
-            text: "surrounding context".into(),
-            method: ContextCaptureMethod::Accessibility,
-        };
+        let context = image();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -180,7 +172,7 @@ mod tests {
         assert_eq!(request.prompt.as_deref(), Some("explain the context"));
         assert!(matches!(
             request.context,
-            Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"
+            Some(ImageCapture { ref png, .. }) if png == b"png"
         ));
     }
 
@@ -230,10 +222,7 @@ mod tests {
 
     #[test]
     fn region_capture_replaces_text_target_and_preserves_context() {
-        let context = ContextCapture::Text {
-            text: "surrounding context".into(),
-            method: ContextCaptureMethod::Accessibility,
-        };
+        let context = image();
         let mut state = State::default();
         let capture_id = state.start_capture();
         state.commit_capture(
@@ -255,7 +244,7 @@ mod tests {
         assert!(matches!(request.target, Some(Target::Image(_))));
         assert!(matches!(
             request.context,
-            Some(ContextCapture::Text { ref text, .. }) if text == "surrounding context"
+            Some(ImageCapture { ref png, .. }) if png == b"png"
         ));
     }
 

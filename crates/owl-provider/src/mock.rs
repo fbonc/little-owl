@@ -3,7 +3,7 @@ use std::time::Duration;
 use futures_util::{StreamExt, stream};
 use owl_types::Target;
 
-use crate::{Provider, ProviderCapabilities, ProviderOutput, ProviderRequest, ProviderStream};
+use crate::{Provider, ProviderOutput, ProviderRequest, ProviderStream};
 
 const DEFAULT_ANSWER: &str = r"
 ## Epistemic Uncertainty
@@ -85,10 +85,6 @@ impl Default for MockProvider {
 }
 
 impl Provider for MockProvider {
-    fn capabilities(&self, _model: &str) -> ProviderCapabilities {
-        ProviderCapabilities { image_input: true }
-    }
-
     fn available_models(&self) -> Vec<String> {
         vec!["mock".to_owned()]
     }

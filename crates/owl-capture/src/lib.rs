@@ -4,8 +4,7 @@ use thiserror::Error;
 // owl-core and owl-ui can name these without depending on owl-capture. Re-exported
 // here so `owl_capture::Target` etc. and the trait signatures below keep working.
 pub use owl_types::{
-    ContextCapture, ContextCaptureMethod, ImageCapture, Provenance, ScreenRect, Target,
-    TextCapture, TextCaptureMethod, WindowBounds,
+    ImageCapture, Provenance, ScreenRect, Target, TextCapture, TextCaptureMethod, WindowBounds,
 };
 
 #[cfg(target_os = "macos")]
@@ -34,7 +33,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub trait Capturer: Send + Sync {
     fn capture_text(&self) -> Result<TextCapture>;
 
-    fn capture_context(&self) -> Result<ContextCapture>;
+    fn capture_context(&self) -> Result<ImageCapture>;
 
     fn select_region(&self) -> Result<Option<ImageCapture>>;
 

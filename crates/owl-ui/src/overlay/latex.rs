@@ -93,7 +93,89 @@ pub(super) fn normalize_delimiters(source: &str) -> String {
         line_start = character == '\n';
     }
 
-    normalized
+    fence_display_math(&normalized)
+}
+
+fn fence_display_math(source: &str) -> String {
+    let mut output = String::with_capacity(source.len());
+    let mut pending = None::<String>;
+    let mut body = String::new();
+    let mut fence = None;
+
+    for line in source.split_inclusive('\n') {
+        let content = line.strip_suffix('\n').unwrap_or(line);
+        let trimmed = content.trim();
+
+        if let Some(original) = &mut pending {
+            if trimmed == "$$" {
+                let source = body.trim();
+                if source.is_empty() {
+                    original.push_str(line);
+                    output.push_str(original);
+                } else {
+                    output.push_str("```math\n");
+                    output.push_str(source);
+                    output.push_str("\n```");
+                    if line.ends_with('\n') {
+                        output.push('\n');
+                    }
+                }
+                pending = None;
+                body.clear();
+            } else {
+                original.push_str(line);
+                body.push_str(line);
+            }
+            continue;
+        }
+
+        if let Some((delimiter, length)) = fence_at(content.as_bytes(), 0) {
+            match fence {
+                Some((open_delimiter, open_length))
+                    if delimiter == open_delimiter && length >= open_length =>
+                {
+                    fence = None;
+                }
+                None => fence = Some((delimiter, length)),
+                _ => {}
+            }
+            output.push_str(line);
+            continue;
+        }
+
+        if fence.is_some() {
+            output.push_str(line);
+            continue;
+        }
+
+        if trimmed == "$$" {
+            pending = Some(line.to_owned());
+            continue;
+        }
+
+        if let Some(source) = trimmed
+            .strip_prefix("$$")
+            .and_then(|source| source.strip_suffix("$$"))
+            .map(str::trim)
+            .filter(|source| !source.is_empty())
+        {
+            output.push_str("```math\n");
+            output.push_str(source);
+            output.push_str("\n```");
+            if line.ends_with('\n') {
+                output.push('\n');
+            }
+            continue;
+        }
+
+        output.push_str(line);
+    }
+
+    if let Some(original) = pending {
+        output.push_str(&original);
+    }
+
+    output
 }
 
 pub(super) struct Viewer;
@@ -371,6 +453,23 @@ mod tests {
             normalize_delimiters(r"Inline \(x^2\) and display \[\frac{1}{2}\]"),
             "Inline $x^2$ and display $$\\frac{1}{2}$$"
         );
+    }
+
+    #[test]
+    fn complete_display_math_blocks_become_math_code_blocks() {
+        assert_eq!(
+            normalize_delimiters("Before\n\n$$\nx_1 + x_2\n$$\n\nAfter"),
+            "Before\n\n```math\nx_1 + x_2\n```\n\nAfter"
+        );
+        assert_eq!(
+            normalize_delimiters("$$x_1 + x_2$$\n"),
+            "```math\nx_1 + x_2\n```\n"
+        );
+    }
+
+    #[test]
+    fn incomplete_display_math_blocks_remain_plain_text() {
+        assert_eq!(normalize_delimiters("$$\nx_1 + x_2"), "$$\nx_1 + x_2");
     }
 
     #[test]

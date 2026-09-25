@@ -15,7 +15,7 @@ pub use error::ProviderError;
 pub use mock::MockProvider;
 pub use openai::{OpenAiConfig, OpenAiProvider};
 
-use owl_types::{ContextCapture, Target};
+use owl_types::{ImageCapture, Target};
 
 pub const OPENAI_PROVIDER_ID: &str = "openai";
 
@@ -23,7 +23,7 @@ pub const OPENAI_PROVIDER_ID: &str = "openai";
 pub struct ProviderRequest {
     pub prompt: Option<String>,
     pub target: Option<Target>,
-    pub context: Option<ContextCapture>,
+    pub context: Option<ImageCapture>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -70,19 +70,12 @@ impl fmt::Display for ModelSelection {
 pub type ProviderStream =
     Pin<Box<dyn Stream<Item = Result<ProviderOutput, ProviderError>> + Send + 'static>>;
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct ProviderCapabilities {
-    pub image_input: bool,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProviderOutput {
     TextDelta(String),
 }
 
 pub trait Provider: Send + Sync {
-    fn capabilities(&self, model: &str) -> ProviderCapabilities;
-
     fn available_models(&self) -> Vec<String>;
 
     fn stream(&self, model: &str, request: ProviderRequest) -> ProviderStream;
@@ -144,11 +137,6 @@ impl ProviderRegistry {
         models.sort();
         models
     }
-
-    pub fn capabilities(&self, selection: &ModelSelection) -> Option<ProviderCapabilities> {
-        self.resolve(selection)
-            .map(|provider| provider.capabilities(&selection.model))
-    }
 }
 
 #[cfg(test)]
@@ -174,11 +162,6 @@ mod tests {
             vec![ModelSelection::new(provider_id.clone(), "mock")]
         );
         assert!(shared_registry.resolve(&models[0]).is_some());
-        assert_eq!(
-            shared_registry.capabilities(&models[0]),
-            Some(ProviderCapabilities { image_input: true })
-        );
-
         registry.remove_provider(&provider_id);
         assert!(shared_registry.available_models().is_empty());
         assert!(shared_registry.resolve(&models[0]).is_none());
