@@ -50,7 +50,10 @@ impl Core {
         }
     }
 
-    pub(crate) fn capture(&self) -> CaptureOutcome {
+    pub(crate) fn capture(
+        &self,
+        on_capture_started: impl FnOnce(Option<WindowBounds>, Option<Target>),
+    ) -> CaptureOutcome {
         let capture_id = self
             .state
             .lock()
@@ -63,7 +66,9 @@ impl Core {
             Ok(capture) => (Some(Target::Text(capture)), None),
             Err(error) => (None, Some(format!("failed to capture text: {error:?}"))),
         };
-        let context = self.capturer.capture_context().ok();
+        let pending_context = self.capturer.begin_context_capture().ok();
+        on_capture_started(focused_window, target.clone());
+        let context = pending_context.and_then(|context| context.complete().ok());
         let elapsed_ms = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
         let capture = Capture {
             target: target.clone(),
@@ -77,11 +82,7 @@ impl Core {
             .expect("core state mutex poisoned")
             .commit_capture(capture_id, capture);
 
-        CaptureOutcome {
-            target,
-            failure,
-            focused_window,
-        }
+        CaptureOutcome { failure }
     }
 
     fn select_region(&self) -> Result<Option<ImageCapture>, String> {
@@ -172,9 +173,7 @@ impl Core {
 }
 
 pub(crate) struct CaptureOutcome {
-    pub(crate) target: Option<Target>,
     pub(crate) failure: Option<String>,
-    pub(crate) focused_window: Option<WindowBounds>,
 }
 
 enum ProviderResponseState {
@@ -187,8 +186,12 @@ mod tests {
     use super::*;
     use owl_provider::{MockProvider, Provider, ProviderId, ProviderRequest};
     use owl_types::{ContextCapture, Provenance, TextCapture, TextCaptureMethod, WindowBounds};
+    use std::sync::atomic::{AtomicBool, Ordering};
 
-    struct StubCapturer;
+    #[derive(Default)]
+    struct StubCapturer {
+        context_completed: Option<Arc<AtomicBool>>,
+    }
 
     struct RecordingProvider {
         requested_models: Mutex<Vec<String>>,
@@ -216,14 +219,20 @@ mod tests {
             })
         }
 
-        fn capture_context(&self) -> owl_capture::Result<ContextCapture> {
-            Ok(ContextCapture {
-                image: ImageCapture {
-                    png: b"context".to_vec(),
-                    region: None,
-                },
-                accessibility_text: Some("surrounding context".into()),
-            })
+        fn begin_context_capture(&self) -> owl_capture::Result<owl_capture::PendingContextCapture> {
+            let context_completed = self.context_completed.clone();
+            Ok(owl_capture::PendingContextCapture::new(move || {
+                if let Some(context_completed) = context_completed {
+                    context_completed.store(true, Ordering::SeqCst);
+                }
+                Ok(ContextCapture {
+                    image: ImageCapture {
+                        png: b"context".to_vec(),
+                        region: None,
+                    },
+                    accessibility_text: Some("surrounding context".into()),
+                })
+            }))
         }
 
         fn select_region(&self) -> owl_capture::Result<Option<ImageCapture>> {
@@ -259,17 +268,22 @@ mod tests {
 
     #[test]
     fn capture_orchestrates_and_commits_capture_data() {
-        let core = Core::new(provider_registry(), Arc::new(StubCapturer));
+        let core = Core::new(provider_registry(), Arc::new(StubCapturer::default()));
 
-        let outcome = core.capture();
+        let mut initial_bounds = None;
+        let mut initial_target = None;
+        let outcome = core.capture(|bounds, target| {
+            initial_bounds = bounds;
+            initial_target = target;
+        });
 
         assert!(outcome.failure.is_none());
         assert!(matches!(
-            outcome.target,
+            initial_target,
             Some(Target::Text(TextCapture { ref text, .. })) if text == "selected text"
         ));
         assert_eq!(
-            outcome.focused_window,
+            initial_bounds,
             Some(WindowBounds {
                 x: 100.0,
                 y: 200.0,
@@ -297,9 +311,24 @@ mod tests {
     }
 
     #[test]
+    fn requests_the_overlay_before_completing_context_capture() {
+        let context_completed = Arc::new(AtomicBool::new(false));
+        let core = Core::new(
+            provider_registry(),
+            Arc::new(StubCapturer {
+                context_completed: Some(Arc::clone(&context_completed)),
+            }),
+        );
+
+        core.capture(|_, _| assert!(!context_completed.load(Ordering::SeqCst)));
+
+        assert!(context_completed.load(Ordering::SeqCst));
+    }
+
+    #[test]
     fn region_selection_replaces_the_committed_target() {
-        let core = Core::new(provider_registry(), Arc::new(StubCapturer));
-        core.capture();
+        let core = Core::new(provider_registry(), Arc::new(StubCapturer::default()));
+        core.capture(|_, _| {});
 
         let selected = core.select_region().expect("region capture succeeds");
 
@@ -321,7 +350,7 @@ mod tests {
         });
         let provider_id = ProviderId::new("recording");
         providers.add_provider(provider_id.clone(), provider.clone());
-        let core = Arc::new(Core::new(providers, Arc::new(StubCapturer)));
+        let core = Arc::new(Core::new(providers, Arc::new(StubCapturer::default())));
 
         let _outputs = core.start_provider_stream(
             Some("explain".into()),

@@ -21,6 +21,7 @@ pub enum Input {
     Prompting(prompting::Input),
     Answering(answering::Input),
     Show,
+    CaptureCompleted,
     SetTarget(Target),
     CaptureFailed,
     AppendAnswer(String),
@@ -58,6 +59,7 @@ pub struct Overlay {
     selected_model: Option<ModelSelection>,
     prompting: prompting::Prompting,
     answering: answering::Answering,
+    capture_ready: bool,
     pub phase: Phase,
 }
 
@@ -69,6 +71,7 @@ impl Default for Overlay {
             selected_model: None,
             prompting: prompting::Prompting::new(random_placeholder()),
             answering: answering::Answering::default(),
+            capture_ready: true,
             phase: Phase::default(),
         }
     }
@@ -86,7 +89,7 @@ impl Overlay {
 
     pub fn update(&mut self, input: Input) -> Option<Output> {
         match input {
-            Input::Prompting(prompting::Input::SubmitRequested) => {
+            Input::Prompting(prompting::Input::SubmitRequested) if self.capture_ready => {
                 self.phase = Phase::Answering;
                 self.answering.reset();
                 Some(Output::Submitted {
@@ -115,8 +118,13 @@ impl Overlay {
             Input::Show => {
                 self.visible = true;
                 self.target = None;
+                self.capture_ready = false;
                 self.phase = Phase::Prompting;
                 self.prompting.reset();
+                None
+            }
+            Input::CaptureCompleted => {
+                self.capture_ready = true;
                 None
             }
             Input::SetTarget(target) => {
@@ -186,7 +194,7 @@ impl Overlay {
         let content = match self.phase {
             Phase::Prompting => self
                 .prompting
-                .view(available_models, selected_model)
+                .view(available_models, selected_model, self.capture_ready)
                 .map(Input::Prompting),
             Phase::Answering => self.answering.view().map(Input::Answering),
         };
@@ -319,6 +327,7 @@ mod tests {
             text: "epistemic uncertainty".into(),
             method: TextCaptureMethod::Accessibility,
         })));
+        overlay.update(Input::CaptureCompleted);
 
         assert_eq!(
             overlay.update(Input::Prompting(prompting::Input::SubmitRequested)),
@@ -342,6 +351,28 @@ mod tests {
 
         assert!(overlay.target.is_none());
         assert!(overlay.visible);
+    }
+
+    #[test]
+    fn submission_waits_for_capture_completion() {
+        let mut overlay = Overlay::new();
+        overlay.update(Input::Show);
+
+        assert!(
+            overlay
+                .update(Input::Prompting(prompting::Input::SubmitRequested))
+                .is_none()
+        );
+        assert_eq!(overlay.phase, Phase::Prompting);
+
+        overlay.update(Input::CaptureCompleted);
+
+        assert!(
+            overlay
+                .update(Input::Prompting(prompting::Input::SubmitRequested))
+                .is_some()
+        );
+        assert_eq!(overlay.phase, Phase::Answering);
     }
 
     #[test]

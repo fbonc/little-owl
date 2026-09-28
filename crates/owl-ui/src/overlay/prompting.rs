@@ -64,10 +64,11 @@ impl Prompting {
         &self,
         available_models: Vec<ModelSelection>,
         selected_model: Option<ModelSelection>,
+        capture_ready: bool,
     ) -> Element<'_, Input> {
         let field = text_input("", &self.prompt_value)
             .on_input(Input::InputChanged)
-            .on_submit(Input::SubmitRequested)
+            .on_submit_maybe(capture_ready.then_some(Input::SubmitRequested))
             .padding(style::INPUT_PADDING)
             .size(style::INPUT_SIZE)
             .style(style::input)
@@ -103,7 +104,7 @@ impl Prompting {
         let send_icon = container(text("↵").size(style::SEND_SIZE)).center(Fill);
 
         let send = button(send_icon)
-            .on_press(Input::SubmitRequested)
+            .on_press_maybe(capture_ready.then_some(Input::SubmitRequested))
             .width(style::SEND_BUTTON_SIZE)
             .height(style::SEND_BUTTON_SIZE)
             .padding(0)

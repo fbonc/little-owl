@@ -31,10 +31,30 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+pub struct PendingContextCapture {
+    complete: Box<dyn FnOnce() -> Result<ContextCapture> + Send>,
+}
+
+impl PendingContextCapture {
+    pub fn new(complete: impl FnOnce() -> Result<ContextCapture> + Send + 'static) -> Self {
+        Self {
+            complete: Box::new(complete),
+        }
+    }
+
+    pub fn completed(context: ContextCapture) -> Self {
+        Self::new(|| Ok(context))
+    }
+
+    pub fn complete(self) -> Result<ContextCapture> {
+        (self.complete)()
+    }
+}
+
 pub trait Capturer: Send + Sync {
     fn capture_text(&self) -> Result<TextCapture>;
 
-    fn capture_context(&self) -> Result<ContextCapture>;
+    fn begin_context_capture(&self) -> Result<PendingContextCapture>;
 
     fn select_region(&self) -> Result<Option<ImageCapture>>;
 

@@ -145,6 +145,10 @@ fn update(state: &mut App, input: Input) -> Task<Input> {
                     None => Task::none(),
                 }
             }
+            CoreOutput::CaptureCompleted => {
+                let _ = state.overlay.update(overlay::Input::CaptureCompleted);
+                Task::none()
+            }
             CoreOutput::TargetCaptured(target) => {
                 let _ = state.overlay.update(overlay::Input::SetTarget(target));
                 Task::none()

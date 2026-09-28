@@ -18,26 +18,28 @@ pub(crate) fn outputs(core: Arc<Core>) -> impl Stream<Item = Output> {
                 loop {
                     match hotkey.recv() {
                         Ok(()) => {
-                            let result = core.capture();
+                            let mut overlay_requested = true;
+                            let result = core.capture(|focused_window, target| {
+                                overlay_requested = outputs
+                                    .unbounded_send(Output::ShowRequested { focused_window })
+                                    .is_ok();
+
+                                if overlay_requested && let Some(target) = target {
+                                    overlay_requested = outputs
+                                        .unbounded_send(Output::TargetCaptured(target))
+                                        .is_ok();
+                                }
+                            });
+
+                            if !overlay_requested {
+                                break;
+                            }
 
                             if let Some(error) = result.failure {
                                 let _ = outputs.unbounded_send(Output::RequestFailed(error));
                             }
 
-                            if outputs
-                                .unbounded_send(Output::ShowRequested {
-                                    focused_window: result.focused_window,
-                                })
-                                .is_err()
-                            {
-                                break;
-                            }
-
-                            if let Some(target) = result.target
-                                && outputs
-                                    .unbounded_send(Output::TargetCaptured(target))
-                                    .is_err()
-                            {
+                            if outputs.unbounded_send(Output::CaptureCompleted).is_err() {
                                 break;
                             }
                         }

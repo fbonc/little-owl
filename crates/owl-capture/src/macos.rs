@@ -1,23 +1,23 @@
-use std::io::Cursor;
 use std::process::Command;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
 use axuielement as ax;
-use dispatch2::DispatchQueue;
-use enigo::{Direction, Enigo, Key, Keyboard, Settings};
-use objc2::MainThreadMarker;
 use objc2_app_kit::NSWorkspace;
-use xcap::Monitor;
-use xcap::image::{ImageFormat, RgbaImage};
+use objc2_core_graphics::{
+    CGEvent, CGEventFlags, CGEventSource, CGEventSourceStateID, CGEventTapLocation,
+};
+use xcap::image::codecs::png::{CompressionType, FilterType, PngEncoder};
+use xcap::image::{ExtendedColorType, ImageEncoder, RgbaImage};
+use xcap::{Monitor, Window};
 
 use crate::{
-    Capturer, ContextCapture, Error, ImageCapture, Permission, Provenance, Result, ScreenRect,
-    TextCapture, TextCaptureMethod, WindowBounds,
+    Capturer, ContextCapture, Error, ImageCapture, PendingContextCapture, Permission, Provenance,
+    Result, ScreenRect, TextCapture, TextCaptureMethod, WindowBounds,
 };
 
-const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(400);
+const CLIPBOARD_TIMEOUT: Duration = Duration::from_millis(150);
 const CLIPBOARD_POLL_INTERVAL: Duration = Duration::from_millis(15);
 
 pub struct MacosCapturer {}
@@ -62,34 +62,13 @@ impl MacosCapturer {
         captured
     }
 
-    // Screenshot a region into an ImageCapture (PNG bytes + the region shot).
+    #[cfg(test)]
     fn capture_image(&self, region: ScreenRect) -> Result<ImageCapture> {
         let png = screenshot_png(region)?;
         Ok(ImageCapture {
             png,
             region: Some(region),
         })
-    }
-}
-
-impl MacosCapturer {
-    fn ax_context_text(&self) -> Option<String> {
-        let text = focused_element()?
-            .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
-            .ok()??;
-        non_empty(text)
-    }
-
-    fn image_window_context(&self) -> Option<ImageCapture> {
-        let window = focused_window()?;
-        let pos = window
-            .point_attribute(ax::ax_attribute::AX_POSITION_ATTRIBUTE)
-            .ok()??;
-        let size = window
-            .size_attribute(ax::ax_attribute::AX_SIZE_ATTRIBUTE)
-            .ok()??;
-        let region = window_screen_rect(pos, size)?;
-        self.capture_image(region).ok()
     }
 }
 
@@ -157,12 +136,66 @@ impl Capturer for MacosCapturer {
         Err(Error::AllMethodsFailed)
     }
 
-    fn capture_context(&self) -> Result<ContextCapture> {
-        let image = self.image_window_context().ok_or(Error::AllMethodsFailed)?;
-        Ok(ContextCapture {
-            image,
-            accessibility_text: self.ax_context_text(),
-        })
+    fn begin_context_capture(&self) -> Result<PendingContextCapture> {
+        let frontmost_app = NSWorkspace::sharedWorkspace()
+            .frontmostApplication()
+            .ok_or(Error::AllMethodsFailed)?;
+        let pid = frontmost_app.processIdentifier();
+        let app = ax::AXUIElement::from_pid(pid).ok_or(Error::AllMethodsFailed)?;
+        let _ = app.set_bool_attribute("AXManualAccessibility", true);
+        let window = app
+            .element_attribute(ax::ax_attribute::AX_FOCUSED_WINDOW_ATTRIBUTE)
+            .ok()
+            .flatten()
+            .ok_or(Error::AllMethodsFailed)?;
+        let pos = window
+            .point_attribute(ax::ax_attribute::AX_POSITION_ATTRIBUTE)
+            .ok()
+            .flatten()
+            .ok_or(Error::AllMethodsFailed)?;
+        let size = window
+            .size_attribute(ax::ax_attribute::AX_SIZE_ATTRIBUTE)
+            .ok()
+            .flatten()
+            .ok_or(Error::AllMethodsFailed)?;
+        let region = window_screen_rect(pos, size).ok_or(Error::AllMethodsFailed)?;
+        let window_bounds = WindowBounds {
+            x: pos.x,
+            y: pos.y,
+            w: size.width,
+            h: size.height,
+        };
+        let capture_window = matching_window(pid as u32, window_bounds);
+        let fallback_image = if capture_window.is_none() {
+            Some(screenshot(region)?)
+        } else {
+            None
+        };
+        let accessibility_text = app
+            .element_attribute(ax::ax_attribute::AX_FOCUSED_UI_ELEMENT_ATTRIBUTE)
+            .ok()
+            .flatten()
+            .and_then(|element| {
+                element
+                    .string_attribute(ax::ax_attribute::AX_VALUE_ATTRIBUTE)
+                    .ok()
+                    .flatten()
+            })
+            .and_then(non_empty);
+
+        Ok(PendingContextCapture::new(move || {
+            let image = match capture_window {
+                Some(window) => window.capture_image().map_err(xcap_err)?,
+                None => fallback_image.expect("fallback context image"),
+            };
+            Ok(ContextCapture {
+                image: ImageCapture {
+                    png: encode_png(&image)?,
+                    region: Some(region),
+                },
+                accessibility_text,
+            })
+        }))
     }
 
     fn select_region(&self) -> Result<Option<ImageCapture>> {
@@ -214,6 +247,28 @@ impl Capturer for MacosCapturer {
     }
 }
 
+fn matching_window(pid: u32, bounds: WindowBounds) -> Option<Window> {
+    Window::all()
+        .ok()?
+        .into_iter()
+        .filter(|window| window.pid().ok() == Some(pid))
+        .min_by_key(|window| {
+            let values = [
+                (window.x().ok().map(i64::from), bounds.x),
+                (window.y().ok().map(i64::from), bounds.y),
+                (window.width().ok().map(i64::from), bounds.w),
+                (window.height().ok().map(i64::from), bounds.h),
+            ];
+
+            values
+                .into_iter()
+                .try_fold(0_u64, |score, (actual, expected)| {
+                    Some(score + (actual? - expected.round() as i64).unsigned_abs())
+                })
+                .unwrap_or(u64::MAX)
+        })
+}
+
 fn non_empty(s: String) -> Option<String> {
     if s.trim().is_empty() { None } else { Some(s) }
 }
@@ -240,7 +295,7 @@ fn focused_window() -> Option<ax::AXUIElement> {
         .ok()?
 }
 
-fn screenshot_png(region: ScreenRect) -> Result<Vec<u8>> {
+fn screenshot(region: ScreenRect) -> Result<RgbaImage> {
     let monitor = monitor_for_display(region.display)?;
     let (mon_w, mon_h) = (
         monitor.width().map_err(xcap_err)?,
@@ -248,8 +303,12 @@ fn screenshot_png(region: ScreenRect) -> Result<Vec<u8>> {
     );
     let (x, y, w, h) = clamp_region(region, mon_w, mon_h)
         .ok_or_else(|| Error::Platform("capture region is empty or off-screen".to_string()))?;
-    let image = monitor.capture_region(x, y, w, h).map_err(xcap_err)?;
-    encode_png(&image)
+    monitor.capture_region(x, y, w, h).map_err(xcap_err)
+}
+
+#[cfg(test)]
+fn screenshot_png(region: ScreenRect) -> Result<Vec<u8>> {
+    encode_png(&screenshot(region)?)
 }
 
 fn monitor_for_display(display: u32) -> Result<Monitor> {
@@ -292,8 +351,13 @@ fn window_screen_rect(pos: ax::AXPoint, size: ax::AXSize) -> Option<ScreenRect> 
 
 fn encode_png(image: &RgbaImage) -> Result<Vec<u8>> {
     let mut buf = Vec::new();
-    image
-        .write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
+    PngEncoder::new_with_quality(&mut buf, CompressionType::Fast, FilterType::Sub)
+        .write_image(
+            image.as_raw(),
+            image.width(),
+            image.height(),
+            ExtendedColorType::Rgba8,
+        )
         .map_err(|e| Error::Platform(format!("PNG encode failed: {e}")))?;
     Ok(buf)
 }
@@ -303,29 +367,23 @@ fn xcap_err(e: xcap::XCapError) -> Error {
 }
 
 fn send_copy_shortcut() -> bool {
-    send_cmd_chord('c')
-}
+    const KEY_C: u16 = 8;
 
-fn send_cmd_chord(c: char) -> bool {
-    if MainThreadMarker::new().is_some() {
-        return send_cmd_chord_on_current_thread(c);
-    }
-
-    let mut sent = false;
-    DispatchQueue::main().exec_sync(|| sent = send_cmd_chord_on_current_thread(c));
-    sent
-}
-
-fn send_cmd_chord_on_current_thread(c: char) -> bool {
-    let Ok(mut enigo) = Enigo::new(&Settings::default()) else {
+    let Some(source) = CGEventSource::new(CGEventSourceStateID::HIDSystemState) else {
         return false;
     };
-    if enigo.key(Key::Meta, Direction::Press).is_err() {
+    let Some(key_down) = CGEvent::new_keyboard_event(Some(&source), KEY_C, true) else {
         return false;
-    }
-    let pressed = enigo.key(Key::Unicode(c), Direction::Click).is_ok();
-    let released = enigo.key(Key::Meta, Direction::Release).is_ok();
-    pressed && released
+    };
+    let Some(key_up) = CGEvent::new_keyboard_event(Some(&source), KEY_C, false) else {
+        return false;
+    };
+
+    CGEvent::set_flags(Some(&key_down), CGEventFlags::MaskCommand);
+    CGEvent::set_flags(Some(&key_up), CGEventFlags::MaskCommand);
+    CGEvent::post(CGEventTapLocation::HIDEventTap, Some(&key_down));
+    CGEvent::post(CGEventTapLocation::HIDEventTap, Some(&key_up));
+    true
 }
 
 fn poll_for_copied_text(clipboard: &mut Clipboard, original: Option<&str>) -> Option<String> {
@@ -566,7 +624,10 @@ mod tests {
     #[ignore = "requires Accessibility and Screen Recording permission"]
     fn live_capture_context() {
         let cap = MacosCapturer::new();
-        match cap.capture_context() {
+        match cap
+            .begin_context_capture()
+            .and_then(PendingContextCapture::complete)
+        {
             Ok(context) => println!(
                 "context image {} bytes, AX text: {}",
                 context.image.png.len(),

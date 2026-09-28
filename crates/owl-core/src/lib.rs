@@ -30,6 +30,7 @@ pub enum Output {
     ShowRequested {
         focused_window: Option<WindowBounds>,
     },
+    CaptureCompleted,
     TargetCaptured(Target),
     RegionSelectionFinished(Result<Option<ImageCapture>, String>),
     AnswerChunk(String),
