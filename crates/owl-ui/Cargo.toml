@@ -8,7 +8,10 @@ edition = "2024"
 # live in the owl-app host, not here.
 [dependencies]
 iced = { version = "0.14.0", features = ["tokio", "image", "markdown", "highlighter", "svg", "advanced"] }
-iced_math = "0.5"
 owl-provider = { path = "../owl-provider" }
 owl-types = { path = "../owl-types" }
 pulldown-cmark = "0.12.2"
+ratex-layout = "0.1.14"
+ratex-parser = "0.1.14"
+ratex-svg = { version = "0.1.14", features = ["standalone", "embed-fonts"] }
+ratex-types = "0.1.14"

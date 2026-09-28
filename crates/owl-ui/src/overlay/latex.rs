@@ -3,6 +3,10 @@ use std::borrow::Cow;
 use iced::widget::{container, markdown, rich_text, row, svg, text};
 use iced::{Center, Element, Fill, Length, Pixels};
 use pulldown_cmark::{Event, Options, Parser};
+use ratex_layout::{LayoutOptions, layout, to_display_list};
+use ratex_parser::parse as parse_latex;
+use ratex_svg::SvgOptions;
+use ratex_types::{color::Color, math_style::MathStyle};
 
 use super::answering::Input;
 use super::style;
@@ -139,12 +143,7 @@ fn inline_content<'a>(
 }
 
 fn math<'a>(source: &str, display: bool, size: Pixels) -> Element<'a, Input> {
-    let renderer = iced_math::MathRenderer::new()
-        .font_size(size.0)
-        .display_style(display)
-        .color(style::math_color());
-
-    match renderer.to_svg(source) {
+    match render_math_svg(source, display, size) {
         Ok(bytes) => {
             let equation: Element<'a, Input> = svg::Svg::new(svg::Handle::from_memory(bytes))
                 .width(Length::Shrink)
@@ -166,6 +165,54 @@ fn math<'a>(source: &str, display: bool, size: Pixels) -> Element<'a, Input> {
             .color(style::DANGER_COLOR)
             .into(),
     }
+}
+
+fn render_math_svg(source: &str, display: bool, size: Pixels) -> Result<Vec<u8>, String> {
+    let source = sanitize_math(source);
+    let nodes = parse_latex(&source).map_err(|error| error.to_string())?;
+    let color = style::TEXT_COLOR;
+    let options = LayoutOptions {
+        style: if display {
+            MathStyle::Display
+        } else {
+            MathStyle::Text
+        },
+        color: Color::new(color.r, color.g, color.b, color.a),
+        ..LayoutOptions::default()
+    };
+    let layout = layout(&nodes, &options);
+    let display_list = to_display_list(&layout);
+    let svg = ratex_svg::render_to_svg(
+        &display_list,
+        &SvgOptions {
+            font_size: size.0 as f64,
+            padding: 1.0,
+            embed_glyphs: true,
+            ..SvgOptions::default()
+        },
+    );
+
+    Ok(svg.into_bytes())
+}
+
+fn sanitize_math(source: &str) -> Cow<'_, str> {
+    if !source.contains("&nbsp;")
+        && !source.contains("&lt;")
+        && !source.contains("&gt;")
+        && !source.contains("&amp;")
+        && !source.contains('\u{a0}')
+    {
+        return Cow::Borrowed(source);
+    }
+
+    Cow::Owned(
+        source
+            .replace("&nbsp;", r"\;")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", r"\&")
+            .replace('\u{a0}', " "),
+    )
 }
 
 fn display_math(content: &markdown::Text, style: markdown::Style) -> Option<String> {
@@ -399,9 +446,7 @@ mod tests {
         ];
 
         for (name, formula) in formulas {
-            let svg = iced_math::MathRenderer::new()
-                .display_style(true)
-                .to_svg(formula)
+            let svg = render_math_svg(formula, true, Pixels(16.0))
                 .unwrap_or_else(|error| panic!("{name} failed to render: {error}"));
             let svg = String::from_utf8(svg).expect("SVG is UTF-8");
 
@@ -523,12 +568,30 @@ $$\sum_{i=1}^n i$$",
 
             for fragment in fragments(&source) {
                 if let Fragment::Math { source, display } = fragment {
-                    iced_math::MathRenderer::new()
-                        .display_style(display)
-                        .to_svg(&source)
+                    render_math_svg(&source, display, Pixels(16.0))
                         .unwrap_or_else(|error| panic!("integrated math failed: {error}"));
                 }
             }
         }
+    }
+
+    #[test]
+    fn fraction_shorthand_and_stretchy_braces_render() {
+        render_math_svg(
+            r"\left\{\frac12, \frac32, \frac52, \frac72\right\}",
+            true,
+            Pixels(16.0),
+        )
+        .expect("common TeX shorthand should render");
+    }
+
+    #[test]
+    fn html_spacing_artifacts_are_removed_from_math() {
+        let source = r"\left\{\frac{1}{2^n-1}: n \in \mathbb{Z},&nbsp;n \ge 1\right\}";
+        let sanitized = sanitize_math(source);
+
+        assert!(!sanitized.contains("&nbsp;"));
+        render_math_svg(source, true, Pixels(16.0))
+            .expect("HTML spacing artifacts should not break otherwise valid math");
     }
 }
