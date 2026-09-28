@@ -290,14 +290,6 @@ pub fn answer_markdown() -> markdown::Style {
     style
 }
 
-pub fn math_color() -> iced_math::Color {
-    iced_math::Color::rgb(
-        (TEXT_COLOR.r * 255.0).round() as u8,
-        (TEXT_COLOR.g * 255.0).round() as u8,
-        (TEXT_COLOR.b * 255.0).round() as u8,
-    )
-}
-
 pub fn scroll(theme: &Theme, status: scrollable::Status) -> scrollable::Style {
     let mut base = scrollable::default(theme, status);
     base.vertical_rail.background = None;
