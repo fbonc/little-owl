@@ -2,180 +2,56 @@ use std::borrow::Cow;
 
 use iced::widget::{container, markdown, rich_text, row, svg, text};
 use iced::{Center, Element, Fill, Length, Pixels};
+use pulldown_cmark::{Event, Options, Parser};
 
 use super::answering::Input;
 use super::style;
 
-const ESCAPED_DOLLAR: char = '\u{e000}';
+const MATH_START: char = '\u{e000}';
+const MATH_END: char = '\u{e001}';
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum InlineFragment<'a> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Fragment<'a> {
     Text(&'a str),
-    Math(&'a str),
+    Math { source: String, display: bool },
 }
 
-pub(super) fn normalize_delimiters(source: &str) -> String {
-    let bytes = source.as_bytes();
-    let mut normalized = String::with_capacity(source.len());
-    let mut index = 0;
-    let mut line_start = true;
-    let mut inline_code = None;
-    let mut fence = None;
-
-    while index < bytes.len() {
-        if line_start && let Some((delimiter, length)) = fence_at(bytes, index) {
-            match fence {
-                Some((open_delimiter, open_length))
-                    if delimiter == open_delimiter && length >= open_length =>
-                {
-                    fence = None;
-                }
-                None => fence = Some((delimiter, length)),
-                _ => {}
-            }
-
-            let line_end = source[index..]
-                .find('\n')
-                .map_or(source.len(), |offset| index + offset + 1);
-            normalized.push_str(&source[index..line_end]);
-            line_start = line_end < source.len() || source.ends_with('\n');
-            index = line_end;
-            continue;
-        }
-
-        let byte = bytes[index];
-
-        if fence.is_none() && byte == b'`' {
-            let length = delimiter_run(bytes, index, b'`');
-
-            match inline_code {
-                Some(open_length) if length == open_length => inline_code = None,
-                None => inline_code = Some(length),
-                _ => {}
-            }
-
-            normalized.push_str(&source[index..index + length]);
-            index += length;
-            line_start = false;
-            continue;
-        }
-
-        if fence.is_none() && inline_code.is_none() && byte == b'\\' {
-            let length = delimiter_run(bytes, index, b'\\');
-            let next = bytes.get(index + length).copied();
-
-            if length % 2 == 1 {
-                let replacement = match next {
-                    Some(b'(' | b')') => Some("$"),
-                    Some(b'[' | b']') => Some("$$"),
-                    Some(b'$') => Some("\u{e000}"),
-                    _ => None,
-                };
-
-                if let Some(replacement) = replacement {
-                    normalized.push_str(&source[index..index + length - 1]);
-                    normalized.push_str(replacement);
-                    index += length + 1;
-                    line_start = false;
-                    continue;
-                }
-            }
-
-            normalized.push_str(&source[index..index + length]);
-            index += length;
-            line_start = false;
-            continue;
-        }
-
-        let character = source[index..].chars().next().expect("character boundary");
-        normalized.push(character);
-        index += character.len_utf8();
-        line_start = character == '\n';
-    }
-
-    fence_display_math(&normalized)
+pub(super) fn parse(source: &str) -> markdown::Content {
+    markdown::Content::parse(&mark_math(source))
 }
 
-fn fence_display_math(source: &str) -> String {
-    let mut output = String::with_capacity(source.len());
-    let mut pending = None::<String>;
-    let mut body = String::new();
-    let mut fence = None;
+fn mark_math(source: &str) -> String {
+    let parser = Parser::new_ext(source, Options::ENABLE_MATH).into_offset_iter();
+    let mut marked = String::with_capacity(source.len());
+    let mut cursor = 0;
 
-    for line in source.split_inclusive('\n') {
-        let content = line.strip_suffix('\n').unwrap_or(line);
-        let trimmed = content.trim();
+    for (event, range) in parser {
+        let (math, display) = match event {
+            Event::InlineMath(math) => (math, false),
+            Event::DisplayMath(math) => (math, true),
+            _ => continue,
+        };
 
-        if let Some(original) = &mut pending {
-            if trimmed == "$$" {
-                let source = body.trim();
-                if source.is_empty() {
-                    original.push_str(line);
-                    output.push_str(original);
-                } else {
-                    output.push_str("```math\n");
-                    output.push_str(source);
-                    output.push_str("\n```");
-                    if line.ends_with('\n') {
-                        output.push('\n');
-                    }
-                }
-                pending = None;
-                body.clear();
-            } else {
-                original.push_str(line);
-                body.push_str(line);
-            }
-            continue;
-        }
-
-        if let Some((delimiter, length)) = fence_at(content.as_bytes(), 0) {
-            match fence {
-                Some((open_delimiter, open_length))
-                    if delimiter == open_delimiter && length >= open_length =>
-                {
-                    fence = None;
-                }
-                None => fence = Some((delimiter, length)),
-                _ => {}
-            }
-            output.push_str(line);
-            continue;
-        }
-
-        if fence.is_some() {
-            output.push_str(line);
-            continue;
-        }
-
-        if trimmed == "$$" {
-            pending = Some(line.to_owned());
-            continue;
-        }
-
-        if let Some(source) = trimmed
-            .strip_prefix("$$")
-            .and_then(|source| source.strip_suffix("$$"))
-            .map(str::trim)
-            .filter(|source| !source.is_empty())
-        {
-            output.push_str("```math\n");
-            output.push_str(source);
-            output.push_str("\n```");
-            if line.ends_with('\n') {
-                output.push('\n');
-            }
-            continue;
-        }
-
-        output.push_str(line);
+        marked.push_str(&source[cursor..range.start]);
+        push_marker(&mut marked, &math, display);
+        cursor = range.end;
     }
 
-    if let Some(original) = pending {
-        output.push_str(&original);
+    marked.push_str(&source[cursor..]);
+    marked
+}
+
+fn push_marker(output: &mut String, source: &str, display: bool) {
+    output.push(MATH_START);
+    output.push(if display { 'd' } else { 'i' });
+    output.push(':');
+
+    for byte in source.as_bytes() {
+        use std::fmt::Write;
+        let _ = write!(output, "{byte:02x}");
     }
 
-    output
+    output.push(MATH_END);
 }
 
 pub(super) struct Viewer;
@@ -194,7 +70,7 @@ impl<'a> markdown::Viewer<'a, Input> for Viewer {
             return math(&source, true, settings.text_size);
         }
 
-        if has_inline_math(content, settings.style) {
+        if has_math(content, settings.style) {
             inline_content(content, settings, settings.text_size)
         } else {
             markdown::paragraph(settings, content, Self::on_link_click)
@@ -210,7 +86,7 @@ impl<'a> markdown::Viewer<'a, Input> for Viewer {
     ) -> Element<'a, Input> {
         let size = heading_size(settings, *level);
 
-        if has_inline_math(content, settings.style) {
+        if has_math(content, settings.style) {
             container(inline_content(content, settings, size))
                 .padding(iced::padding::top(if index > 0 {
                     settings.text_size / 2.0
@@ -220,20 +96,6 @@ impl<'a> markdown::Viewer<'a, Input> for Viewer {
                 .into()
         } else {
             markdown::heading(settings, level, content, index, Self::on_link_click)
-        }
-    }
-
-    fn code_block(
-        &self,
-        settings: markdown::Settings,
-        language: Option<&'a str>,
-        code: &'a str,
-        lines: &'a [markdown::Text],
-    ) -> Element<'a, Input> {
-        if language.is_some_and(is_math_language) {
-            math(code.trim(), true, settings.text_size)
-        } else {
-            markdown::code_block(settings, lines, Self::on_link_click)
         }
     }
 }
@@ -246,12 +108,12 @@ fn inline_content<'a>(
     let mut elements = Vec::new();
 
     for span in content.spans(settings.style).iter() {
-        for fragment in inline_fragments(&span.text) {
+        for fragment in fragments(&span.text) {
             match fragment {
-                InlineFragment::Text(source) => {
+                Fragment::Text(source) => {
                     for text_fragment in split_text(source) {
                         let mut styled = span.clone();
-                        styled.text = Cow::Owned(text_fragment.replace(ESCAPED_DOLLAR, "$"));
+                        styled.text = Cow::Owned(text_fragment.to_owned());
 
                         elements.push(
                             rich_text(vec![styled])
@@ -261,8 +123,8 @@ fn inline_content<'a>(
                         );
                     }
                 }
-                InlineFragment::Math(source) => {
-                    elements.push(math(source, false, size));
+                Fragment::Math { source, display } => {
+                    elements.push(math(&source, display, size));
                 }
             }
         }
@@ -312,74 +174,86 @@ fn display_math(content: &markdown::Text, style: markdown::Style) -> Option<Stri
         .iter()
         .map(|span| span.text.as_ref())
         .collect::<String>();
-    let source = source.trim();
-    let inner = source.strip_prefix("$$")?.strip_suffix("$$")?.trim();
+    let mut fragments = fragments(source.trim());
 
-    (!inner.is_empty()).then(|| inner.to_owned())
+    match (fragments.next(), fragments.next()) {
+        (
+            Some(Fragment::Math {
+                source,
+                display: true,
+            }),
+            None,
+        ) => Some(source),
+        _ => None,
+    }
 }
 
-fn has_inline_math(content: &markdown::Text, style: markdown::Style) -> bool {
-    content.spans(style).iter().any(|span| {
-        span.text.contains(ESCAPED_DOLLAR)
-            || inline_fragments(&span.text)
-                .any(|fragment| matches!(fragment, InlineFragment::Math(_)))
-    })
+fn has_math(content: &markdown::Text, style: markdown::Style) -> bool {
+    content
+        .spans(style)
+        .iter()
+        .any(|span| fragments(&span.text).any(|fragment| matches!(fragment, Fragment::Math { .. })))
 }
 
-fn inline_fragments(source: &str) -> impl Iterator<Item = InlineFragment<'_>> {
+fn fragments(source: &str) -> impl Iterator<Item = Fragment<'_>> {
     let mut fragments = Vec::new();
-    let bytes = source.as_bytes();
     let mut cursor = 0;
     let mut search = 0;
 
-    while search < bytes.len() {
-        if bytes[search] != b'$'
-            || search > 0 && bytes[search - 1] == b'$'
-            || bytes.get(search + 1) == Some(&b'$')
-            || bytes.get(search + 1).is_none_or(u8::is_ascii_whitespace)
-        {
-            search += 1;
-            continue;
-        }
-
-        let mut close = search + 1;
-        let mut closing = None;
-
-        while close < bytes.len() {
-            if bytes[close] == b'$'
-                && bytes[close - 1] != b'$'
-                && bytes.get(close + 1) != Some(&b'$')
-                && !bytes[close - 1].is_ascii_whitespace()
-                && bytes
-                    .get(close + 1)
-                    .is_none_or(|next| !next.is_ascii_digit())
-            {
-                closing = Some(close);
-                break;
-            }
-
-            close += 1;
-        }
-
-        let Some(close) = closing else {
-            search += 1;
+    while let Some(relative_start) = source[search..].find(MATH_START) {
+        let start = search + relative_start;
+        let payload_start = start + MATH_START.len_utf8();
+        let Some(relative_end) = source[payload_start..].find(MATH_END) else {
+            break;
+        };
+        let end = payload_start + relative_end;
+        let Some((display, math)) = decode_marker(&source[payload_start..end]) else {
+            search = payload_start;
             continue;
         };
 
-        if cursor < search {
-            fragments.push(InlineFragment::Text(&source[cursor..search]));
+        if cursor < start {
+            fragments.push(Fragment::Text(&source[cursor..start]));
         }
-
-        fragments.push(InlineFragment::Math(&source[search + 1..close]));
-        cursor = close + 1;
+        fragments.push(Fragment::Math {
+            source: math,
+            display,
+        });
+        cursor = end + MATH_END.len_utf8();
         search = cursor;
     }
 
     if cursor < source.len() {
-        fragments.push(InlineFragment::Text(&source[cursor..]));
+        fragments.push(Fragment::Text(&source[cursor..]));
     }
 
     fragments.into_iter()
+}
+
+fn decode_marker(payload: &str) -> Option<(bool, String)> {
+    let (kind, encoded) = payload.split_once(':')?;
+    let display = match kind {
+        "i" => false,
+        "d" => true,
+        _ => return None,
+    };
+
+    if encoded.len() % 2 != 0 {
+        return None;
+    }
+
+    let bytes = encoded
+        .as_bytes()
+        .chunks_exact(2)
+        .map(|pair| {
+            let pair = std::str::from_utf8(pair).ok()?;
+            u8::from_str_radix(pair, 16).ok()
+        })
+        .collect::<Option<Vec<_>>>()?;
+
+    String::from_utf8(bytes)
+        .ok()
+        .map(|source| (display, source))
 }
 
 fn split_text(source: &str) -> impl Iterator<Item = &str> {
@@ -414,109 +288,247 @@ fn heading_size(settings: markdown::Settings, level: markdown::HeadingLevel) -> 
     }
 }
 
-fn is_math_language(language: &str) -> bool {
-    matches!(language.trim(), "math" | "latex" | "tex")
-}
-
-fn fence_at(bytes: &[u8], line_start: usize) -> Option<(u8, usize)> {
-    let mut index = line_start;
-    let mut spaces = 0;
-
-    while bytes.get(index) == Some(&b' ') && spaces < 3 {
-        spaces += 1;
-        index += 1;
-    }
-
-    let delimiter = *bytes.get(index)?;
-    if !matches!(delimiter, b'`' | b'~') {
-        return None;
-    }
-
-    let length = delimiter_run(bytes, index, delimiter);
-    (length >= 3).then_some((delimiter, length))
-}
-
-fn delimiter_run(bytes: &[u8], start: usize, delimiter: u8) -> usize {
-    bytes[start..]
-        .iter()
-        .take_while(|byte| **byte == delimiter)
-        .count()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iced::font;
 
     #[test]
-    fn normalizes_llm_math_delimiters() {
+    fn pulldown_cmark_identifies_inline_and_display_math() {
+        let marked = mark_math("Euler: $e^{i\\pi} + 1 = 0$.\n\n$$\\sum_i x_i$$");
+        let parsed = fragments(&marked).collect::<Vec<_>>();
+
         assert_eq!(
-            normalize_delimiters(r"Inline \(x^2\) and display \[\frac{1}{2}\]"),
-            "Inline $x^2$ and display $$\\frac{1}{2}$$"
-        );
-    }
-
-    #[test]
-    fn complete_display_math_blocks_become_math_code_blocks() {
-        assert_eq!(
-            normalize_delimiters("Before\n\n$$\nx_1 + x_2\n$$\n\nAfter"),
-            "Before\n\n```math\nx_1 + x_2\n```\n\nAfter"
-        );
-        assert_eq!(
-            normalize_delimiters("$$x_1 + x_2$$\n"),
-            "```math\nx_1 + x_2\n```\n"
-        );
-    }
-
-    #[test]
-    fn incomplete_display_math_blocks_remain_plain_text() {
-        assert_eq!(normalize_delimiters("$$\nx_1 + x_2"), "$$\nx_1 + x_2");
-    }
-
-    #[test]
-    fn leaves_math_delimiters_inside_code_untouched() {
-        let code = "`\\(inline code\\)`\n\n```text\n\\[fenced code\\]\n```";
-        assert_eq!(normalize_delimiters(code), code);
-        assert_eq!(
-            normalize_delimiters("```text\n\\(code\\)\n```\n\\(math\\)"),
-            "```text\n\\(code\\)\n```\n$math$"
-        );
-    }
-
-    #[test]
-    fn escaped_delimiters_remain_literal() {
-        assert_eq!(normalize_delimiters(r"\\(not math\\)"), r"\\(not math\\)");
-    }
-
-    #[test]
-    fn finds_inline_math_without_treating_prices_as_math() {
-        assert_eq!(
-            inline_fragments("Euler: $e^{i\\pi} + 1 = 0$.").collect::<Vec<_>>(),
+            parsed,
             vec![
-                InlineFragment::Text("Euler: "),
-                InlineFragment::Math("e^{i\\pi} + 1 = 0"),
-                InlineFragment::Text("."),
+                Fragment::Text("Euler: "),
+                Fragment::Math {
+                    source: "e^{i\\pi} + 1 = 0".into(),
+                    display: false,
+                },
+                Fragment::Text(".\n\n"),
+                Fragment::Math {
+                    source: "\\sum_i x_i".into(),
+                    display: true,
+                },
             ]
         );
+    }
+
+    #[test]
+    fn math_is_not_recognized_inside_code() {
+        let source = "`$inline$`\n\n```text\n$$display$$\n```";
+        assert_eq!(mark_math(source), source);
+    }
+
+    #[test]
+    fn prices_remain_text() {
+        let source = "It costs $5 or $10.";
+        assert_eq!(mark_math(source), source);
+    }
+
+    #[test]
+    fn markers_round_trip_arbitrary_formula_text() {
+        let mut marker = String::new();
+        push_marker(&mut marker, r"x_{\text{owl}} = \$5", true);
+
         assert_eq!(
-            inline_fragments("It costs $5 or $10.").collect::<Vec<_>>(),
-            vec![InlineFragment::Text("It costs $5 or $10.")]
-        );
-        assert_eq!(
-            inline_fragments("Not a block: $$x^2$$").collect::<Vec<_>>(),
-            vec![InlineFragment::Text("Not a block: $$x^2$$")]
+            fragments(&marker).collect::<Vec<_>>(),
+            vec![Fragment::Math {
+                source: r"x_{\text{owl}} = \$5".into(),
+                display: true,
+            }]
         );
     }
 
     #[test]
-    fn native_renderer_produces_svg() {
-        let svg = iced_math::MathRenderer::new()
-            .to_svg(r"\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-            .expect("supported LaTeX");
-        let text_svg = iced_math::MathRenderer::new()
-            .to_svg(r"P(\text{heads}) = 0.5")
-            .expect("text in a formula");
+    fn iced_markdown_preserves_math_markers() {
+        let content = parse("Before $x^2$ after");
+        let Some(markdown::Item::Paragraph(text)) = content.items().first() else {
+            panic!("expected a paragraph");
+        };
+        let source = text
+            .spans(markdown::Style::from(iced::Theme::Dark))
+            .iter()
+            .map(|span| span.text.as_ref())
+            .collect::<String>();
 
-        assert!(svg.starts_with(b"<svg"));
-        assert!(text_svg.starts_with(b"<svg"));
+        assert_eq!(
+            fragments(&source).collect::<Vec<_>>(),
+            vec![
+                Fragment::Text("Before "),
+                Fragment::Math {
+                    source: "x^2".into(),
+                    display: false,
+                },
+                Fragment::Text(" after"),
+            ]
+        );
+    }
+
+    #[test]
+    fn invalid_markers_remain_literal_text() {
+        let source = "before \u{e000}not-a-marker\u{e001} after";
+        assert_eq!(
+            fragments(source).collect::<Vec<_>>(),
+            vec![Fragment::Text(source)]
+        );
+    }
+
+    #[test]
+    fn common_latex_renders_to_svg() {
+        let formulas = [
+            ("scripts", r"x^2 + y_1 = 10"),
+            ("fraction and root", r"\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}"),
+            ("greek", r"\alpha + \beta = \Gamma"),
+            ("sum", r"\sum_{i=1}^{n} i = \frac{n(n+1)}{2}"),
+            ("integral", r"\int_0^1 x^2 \, dx = \frac{1}{3}"),
+            (
+                "limit and functions",
+                r"\lim_{x \to 0} \frac{\sin x}{x} = 1",
+            ),
+            ("delimiters", r"\left(\frac{a}{b}\right)"),
+            ("matrix", r"\begin{bmatrix}a & b \\ c & d\end{bmatrix}"),
+            (
+                "cases",
+                r"f(x)=\begin{cases}x^2 & x\ge 0 \\ -x & x<0\end{cases}",
+            ),
+            ("text", r"P(\text{heads}) = 0.5"),
+            ("accents", r"\hat{x}, \bar{x}, \vec{x}"),
+            ("math alphabets", r"\mathbb{R}, \mathbf{x}, \mathcal{F}"),
+        ];
+
+        for (name, formula) in formulas {
+            let svg = iced_math::MathRenderer::new()
+                .display_style(true)
+                .to_svg(formula)
+                .unwrap_or_else(|error| panic!("{name} failed to render: {error}"));
+            let svg = String::from_utf8(svg).expect("SVG is UTF-8");
+
+            assert!(svg.starts_with("<svg"), "{name} has no SVG root");
+            assert!(svg.contains("viewBox="), "{name} has no viewport");
+            assert!(svg.contains("<path"), "{name} has no rendered glyphs");
+            assert!(svg.ends_with("</svg>"), "{name} has no closing SVG tag");
+        }
+    }
+
+    #[test]
+    fn common_markdown_blocks_are_preserved() {
+        let content = parse(
+            "# Heading\n\nParagraph\n\n> Quote\n\n- bullet\n\n1. ordered\n\n- [x] task\n\n---\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n```rust\nlet x = 1;\n```\n\n![owl](https://example.com/owl.png)",
+        );
+        let items = content.items();
+
+        assert!(matches!(items.first(), Some(markdown::Item::Heading(..))));
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::Paragraph(..)))
+        );
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::Quote(..)))
+        );
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::List { start: None, .. }))
+        );
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::List { start: Some(1), .. }))
+        );
+        assert!(items.iter().any(|item| matches!(
+            item,
+            markdown::Item::List { bullets, .. }
+                if bullets.iter().any(|bullet| matches!(
+                    bullet,
+                    markdown::Bullet::Task { done: true, .. }
+                ))
+        )));
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::Rule))
+        );
+        assert!(
+            items
+                .iter()
+                .any(|item| matches!(item, markdown::Item::Table { .. }))
+        );
+        assert!(items.iter().any(|item| matches!(
+            item,
+            markdown::Item::CodeBlock { language, code, .. }
+                if language.as_deref() == Some("rust") && code.contains("let x = 1;")
+        )));
+        assert!(items.iter().any(|item| matches!(
+            item,
+            markdown::Item::Image { url, .. }
+                if url == "https://example.com/owl.png"
+        )));
+    }
+
+    #[test]
+    fn common_inline_markdown_styles_are_preserved() {
+        let content =
+            parse("plain **bold** *italic* ~~strike~~ `code` [link](https://example.com)");
+        let Some(markdown::Item::Paragraph(text)) = content.items().first() else {
+            panic!("expected a paragraph");
+        };
+        let style = style::answer_markdown();
+        let spans = text.spans(style);
+        let find = |needle: &str| {
+            spans
+                .iter()
+                .find(|span| span.text.as_ref() == needle)
+                .unwrap_or_else(|| panic!("missing {needle:?} span"))
+        };
+
+        assert_eq!(
+            find("bold").font.expect("bold font").weight,
+            font::Weight::Bold
+        );
+        assert_eq!(
+            find("italic").font.expect("italic font").style,
+            font::Style::Italic
+        );
+        assert!(find("strike").strikethrough);
+        assert!(find("code").highlight.is_some());
+        assert_eq!(find("link").link.as_deref(), Some("https://example.com"));
+    }
+
+    #[test]
+    fn math_survives_common_markdown_contexts() {
+        let content = parse(
+            r"# Energy $E=mc^2$
+
+**Result:** $x=\frac{-b}{2a}$
+
+$$\sum_{i=1}^n i$$",
+        );
+        let style = style::answer_markdown();
+
+        for item in content.items() {
+            let text = match item {
+                markdown::Item::Heading(_, text) | markdown::Item::Paragraph(text) => text,
+                _ => continue,
+            };
+            let source = text
+                .spans(style)
+                .iter()
+                .map(|span| span.text.as_ref())
+                .collect::<String>();
+
+            for fragment in fragments(&source) {
+                if let Fragment::Math { source, display } = fragment {
+                    iced_math::MathRenderer::new()
+                        .display_style(display)
+                        .to_svg(&source)
+                        .unwrap_or_else(|error| panic!("integrated math failed: {error}"));
+                }
+            }
+        }
     }
 }

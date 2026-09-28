@@ -30,7 +30,7 @@ impl Answering {
 
     pub fn push_token(&mut self, token: &str) {
         self.answer.push_str(token);
-        self.markdown = markdown::Content::parse(&latex::normalize_delimiters(&self.answer));
+        self.markdown = latex::parse(&self.answer);
     }
 
     pub fn finish(&mut self) {
