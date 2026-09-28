@@ -1,8 +1,9 @@
 use std::borrow::Cow;
+use std::ops::Range;
 
 use iced::widget::{container, markdown, rich_text, row, svg, text};
 use iced::{Center, Element, Fill, Length, Pixels};
-use pulldown_cmark::{Event, Options, Parser};
+use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use ratex_layout::{LayoutOptions, layout, to_display_list};
 use ratex_parser::parse as parse_latex;
 use ratex_svg::SvgOptions;
@@ -20,12 +21,42 @@ enum Fragment<'a> {
     Math { source: String, display: bool },
 }
 
+#[derive(Debug, Clone, Copy)]
+enum AlternateDelimiter {
+    Inline,
+    Display,
+}
+
+impl AlternateDelimiter {
+    fn opening(self) -> &'static str {
+        match self {
+            Self::Inline => r"\(",
+            Self::Display => r"\[",
+        }
+    }
+
+    fn closing(self) -> &'static str {
+        match self {
+            Self::Inline => r"\)",
+            Self::Display => r"\]",
+        }
+    }
+
+    fn replacement(self) -> &'static str {
+        match self {
+            Self::Inline => "$",
+            Self::Display => "$$",
+        }
+    }
+}
+
 pub(super) fn parse(source: &str) -> markdown::Content {
     markdown::Content::parse(&mark_math(source))
 }
 
 fn mark_math(source: &str) -> String {
-    let parser = Parser::new_ext(source, Options::ENABLE_MATH).into_offset_iter();
+    let source = normalize_alternate_delimiters(source);
+    let parser = Parser::new_ext(&source, Options::ENABLE_MATH).into_offset_iter();
     let mut marked = String::with_capacity(source.len());
     let mut cursor = 0;
 
@@ -43,6 +74,109 @@ fn mark_math(source: &str) -> String {
 
     marked.push_str(&source[cursor..]);
     marked
+}
+
+fn normalize_alternate_delimiters(source: &str) -> Cow<'_, str> {
+    let protected = code_ranges(source);
+    let mut output = None;
+    let mut copied = 0;
+    let mut search = 0;
+
+    while let Some((opening, delimiter)) = find_opening(source, search, &protected) {
+        let content_start = opening + delimiter.opening().len();
+        let Some(closing) = find_delimiter(source, content_start, delimiter.closing(), &protected)
+        else {
+            search = content_start;
+            continue;
+        };
+
+        let normalized = output.get_or_insert_with(|| String::with_capacity(source.len()));
+        normalized.push_str(&source[copied..opening]);
+        normalized.push_str(delimiter.replacement());
+        normalized.push_str(&source[content_start..closing]);
+        normalized.push_str(delimiter.replacement());
+
+        copied = closing + delimiter.closing().len();
+        search = copied;
+    }
+
+    match output {
+        Some(mut normalized) => {
+            normalized.push_str(&source[copied..]);
+            Cow::Owned(normalized)
+        }
+        None => Cow::Borrowed(source),
+    }
+}
+
+fn code_ranges(source: &str) -> Vec<Range<usize>> {
+    let mut ranges = Vec::new();
+    let mut block_start = None;
+
+    for (event, range) in Parser::new(source).into_offset_iter() {
+        match event {
+            Event::Start(Tag::CodeBlock(_)) => block_start = Some(range.start),
+            Event::End(TagEnd::CodeBlock) => {
+                if let Some(start) = block_start.take() {
+                    ranges.push(start..range.end);
+                }
+            }
+            Event::Code(_) if block_start.is_none() => ranges.push(range),
+            _ => {}
+        }
+    }
+
+    ranges
+}
+
+fn find_opening(
+    source: &str,
+    start: usize,
+    protected: &[Range<usize>],
+) -> Option<(usize, AlternateDelimiter)> {
+    let inline = find_delimiter(
+        source,
+        start,
+        AlternateDelimiter::Inline.opening(),
+        protected,
+    );
+    let display = find_delimiter(
+        source,
+        start,
+        AlternateDelimiter::Display.opening(),
+        protected,
+    );
+
+    match (inline, display) {
+        (Some(inline), Some(display)) if inline < display => {
+            Some((inline, AlternateDelimiter::Inline))
+        }
+        (Some(_), Some(display)) => Some((display, AlternateDelimiter::Display)),
+        (Some(inline), None) => Some((inline, AlternateDelimiter::Inline)),
+        (None, Some(display)) => Some((display, AlternateDelimiter::Display)),
+        (None, None) => None,
+    }
+}
+
+fn find_delimiter(
+    source: &str,
+    start: usize,
+    delimiter: &str,
+    protected: &[Range<usize>],
+) -> Option<usize> {
+    source[start..]
+        .match_indices(delimiter)
+        .map(|(relative, _)| start + relative)
+        .find(|index| {
+            !protected.iter().any(|range| range.contains(index))
+                && source[..*index]
+                    .bytes()
+                    .rev()
+                    .take_while(|byte| *byte == b'\\')
+                    .count()
+                    % 2
+                    == 0
+        })
 }
 
 fn push_marker(output: &mut String, source: &str, display: bool) {
@@ -363,9 +497,37 @@ mod tests {
     }
 
     #[test]
+    fn standard_tex_delimiters_become_math() {
+        let marked = mark_math(r"Inline \(x^2\). Display: \[\sum_i x_i\]");
+
+        assert_eq!(
+            fragments(&marked).collect::<Vec<_>>(),
+            vec![
+                Fragment::Text("Inline "),
+                Fragment::Math {
+                    source: "x^2".into(),
+                    display: false,
+                },
+                Fragment::Text(". Display: "),
+                Fragment::Math {
+                    source: "\\sum_i x_i".into(),
+                    display: true,
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn math_is_not_recognized_inside_code() {
-        let source = "`$inline$`\n\n```text\n$$display$$\n```";
+        let source = "`$inline$ \\(alternate\\)`\n\n```text\n$$display$$\n\\[alternate\\]\n```";
         assert_eq!(mark_math(source), source);
+    }
+
+    #[test]
+    fn unmatched_and_escaped_alternate_delimiters_remain_text() {
+        for source in [r"unmatched \[x", r"escaped \\[x\\]"] {
+            assert_eq!(mark_math(source), source);
+        }
     }
 
     #[test]
@@ -443,6 +605,8 @@ mod tests {
             ("text", r"P(\text{heads}) = 0.5"),
             ("accents", r"\hat{x}, \bar{x}, \vec{x}"),
             ("math alphabets", r"\mathbb{R}, \mathbf{x}, \mathcal{F}"),
+            ("set notation", r"A=\{3x:x\in 2\mathbb Z\}"),
+            ("divisibility", r"6\mid(x-12)"),
         ];
 
         for (name, formula) in formulas {
