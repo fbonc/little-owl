@@ -7,7 +7,7 @@ use futures_util::Stream;
 use crate::Output;
 use crate::core::Core;
 
-const HOTKEY_ACCELERATOR: &str = "Ctrl+Shift+KeyA";
+const HOTKEY_ACCELERATOR: &str = "Cmd+Shift+KeyE";
 
 pub(crate) fn outputs(core: Arc<Core>) -> impl Stream<Item = Output> {
     let (outputs, receiver) = mpsc::unbounded();
