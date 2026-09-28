@@ -69,7 +69,7 @@ impl Default for Overlay {
             visible: false,
             target: None,
             selected_model: None,
-            prompting: prompting::Prompting::new(random_placeholder()),
+            prompting: prompting::Prompting::new(),
             answering: answering::Answering::default(),
             capture_ready: true,
             phase: Phase::default(),
@@ -302,15 +302,6 @@ fn target_clear_button() -> Element<'static, Input> {
         .padding(0)
         .style(style::header_button)
         .into()
-}
-
-fn random_placeholder() -> &'static str {
-    use std::hash::{BuildHasher, Hasher};
-
-    let n = std::collections::hash_map::RandomState::new()
-        .build_hasher()
-        .finish() as usize;
-    style::PLACEHOLDERS[n % style::PLACEHOLDERS.len()]
 }
 
 #[cfg(test)]

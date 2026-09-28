@@ -112,7 +112,7 @@ pub const CAPTURE_BUTTON_TEXT_SIZE: f32 = 13.0;
 pub const CAPTURE_BUTTON_SPACING: f32 = 6.0;
 pub const MODEL_PICKER_TEXT_SIZE: f32 = 13.0;
 
-pub const PLACEHOLDERS: [&str; 7] = [
+pub const PLACEHOLDERS: [&str; 9] = [
     "Hoot away…",
     "Hoot’s on your mind?",
     "Hoot me a question…",
@@ -120,6 +120,8 @@ pub const PLACEHOLDERS: [&str; 7] = [
     "I’m owl ears…",
     "Whooo’s curious?",
     "Perch a thought…",
+    "Hoot me...",
+    "In my owl-pinion..."
 ];
 pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
 

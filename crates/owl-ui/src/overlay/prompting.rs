@@ -25,14 +25,23 @@ pub enum Input {
     CaptureFailed,
 }
 
+fn random_placeholder() -> &'static str {
+    use std::hash::{BuildHasher, Hasher};
+
+    let n = std::collections::hash_map::RandomState::new()
+        .build_hasher()
+        .finish() as usize;
+    style::PLACEHOLDERS[n % style::PLACEHOLDERS.len()]
+}
+
 impl Prompting {
-    pub fn new(placeholder: &'static str) -> Self {
+    pub fn new() -> Self {
         Self {
             prompt_value: String::new(),
             input_id: Id::unique(),
             input_focused: false,
             capture_failed: false,
-            placeholder,
+            placeholder: random_placeholder(),
         }
     }
 
@@ -54,6 +63,7 @@ impl Prompting {
     pub fn reset(&mut self) {
         self.prompt_value.clear();
         self.capture_failed = false;
+        self.placeholder = random_placeholder();
     }
 
     pub fn check_focus(&self) -> Task<Input> {
@@ -166,7 +176,7 @@ mod tests {
 
     #[test]
     fn changed_updates_the_local_value() {
-        let mut prompting = Prompting::new("Ask the owl…");
+        let mut prompting = Prompting::new();
 
         prompting.update(Input::InputChanged("what is this?".into()));
 
@@ -175,7 +185,7 @@ mod tests {
 
     #[test]
     fn submit_does_not_mutate_local_state() {
-        let mut prompting = Prompting::new("Ask the owl…");
+        let mut prompting = Prompting::new();
         prompting.update(Input::InputChanged("keep me".into()));
 
         prompting.update(Input::SubmitRequested);
@@ -185,7 +195,7 @@ mod tests {
 
     #[test]
     fn reset_clears_the_prompt_and_capture_failure() {
-        let mut prompting = Prompting::new("Ask the owl…");
+        let mut prompting = Prompting::new();
         prompting.update(Input::InputChanged("old prompt".into()));
         prompting.update(Input::CaptureFailed);
 
