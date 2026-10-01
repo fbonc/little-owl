@@ -1,8 +1,5 @@
 use thiserror::Error;
 
-// Shared data vocabulary lives in owl-types (a dependency-light leaf crate) so
-// owl-core and owl-ui can name these without depending on owl-capture. Re-exported
-// here so `owl_capture::Target` etc. and the trait signatures below keep working.
 pub use owl_types::{
     ContextCapture, ImageCapture, Provenance, ScreenRect, Target, TextCapture, TextCaptureMethod,
     WindowBounds,
