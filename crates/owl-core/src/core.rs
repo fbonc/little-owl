@@ -28,7 +28,7 @@ impl Core {
         }
     }
 
-    pub(crate) fn handle(self: &Arc<Self>, input: Input) -> BoxStream<'static, Output> {
+    pub(crate) fn handle_input(self: &Arc<Self>, input: Input) -> BoxStream<'static, Output> {
         match input {
             Input::Submit { prompt, model } => self.start_provider_stream(prompt, model),
             Input::RemoveTarget => {
