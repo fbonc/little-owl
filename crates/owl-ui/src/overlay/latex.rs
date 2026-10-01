@@ -21,32 +21,32 @@ enum Fragment<'a> {
     Math { source: String, display: bool },
 }
 
-#[derive(Debug, Clone, Copy)]
-enum AlternateDelimiter {
-    Inline,
-    Display,
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ExplicitDelimiter {
+    Parentheses,
+    Brackets,
+    Dollars,
 }
 
-impl AlternateDelimiter {
+impl ExplicitDelimiter {
     fn opening(self) -> &'static str {
         match self {
-            Self::Inline => r"\(",
-            Self::Display => r"\[",
+            Self::Parentheses => r"\(",
+            Self::Brackets => r"\[",
+            Self::Dollars => "$$",
         }
     }
 
     fn closing(self) -> &'static str {
         match self {
-            Self::Inline => r"\)",
-            Self::Display => r"\]",
+            Self::Parentheses => r"\)",
+            Self::Brackets => r"\]",
+            Self::Dollars => "$$",
         }
     }
 
-    fn replacement(self) -> &'static str {
-        match self {
-            Self::Inline => "$",
-            Self::Display => "$$",
-        }
+    fn display(self) -> bool {
+        !matches!(self, Self::Parentheses)
     }
 }
 
@@ -55,7 +55,7 @@ pub(super) fn parse(source: &str) -> markdown::Content {
 }
 
 fn mark_math(source: &str) -> String {
-    let source = normalize_alternate_delimiters(source);
+    let source = mark_explicit_math(source);
     let parser = Parser::new_ext(&source, Options::ENABLE_MATH).into_offset_iter();
     let mut marked = String::with_capacity(source.len());
     let mut cursor = 0;
@@ -76,7 +76,7 @@ fn mark_math(source: &str) -> String {
     marked
 }
 
-fn normalize_alternate_delimiters(source: &str) -> Cow<'_, str> {
+fn mark_explicit_math(source: &str) -> Cow<'_, str> {
     let protected = code_ranges(source);
     let mut output = None;
     let mut copied = 0;
@@ -90,20 +90,22 @@ fn normalize_alternate_delimiters(source: &str) -> Cow<'_, str> {
             continue;
         };
 
-        let normalized = output.get_or_insert_with(|| String::with_capacity(source.len()));
-        normalized.push_str(&source[copied..opening]);
-        normalized.push_str(delimiter.replacement());
-        normalized.push_str(&source[content_start..closing]);
-        normalized.push_str(delimiter.replacement());
+        let marked = output.get_or_insert_with(|| String::with_capacity(source.len()));
+        marked.push_str(&source[copied..opening]);
+        push_marker(
+            marked,
+            source[content_start..closing].trim(),
+            delimiter.display(),
+        );
 
         copied = closing + delimiter.closing().len();
         search = copied;
     }
 
     match output {
-        Some(mut normalized) => {
-            normalized.push_str(&source[copied..]);
-            Cow::Owned(normalized)
+        Some(mut marked) => {
+            marked.push_str(&source[copied..]);
+            Cow::Owned(marked)
         }
         None => Cow::Borrowed(source),
     }
@@ -133,29 +135,18 @@ fn find_opening(
     source: &str,
     start: usize,
     protected: &[Range<usize>],
-) -> Option<(usize, AlternateDelimiter)> {
-    let inline = find_delimiter(
-        source,
-        start,
-        AlternateDelimiter::Inline.opening(),
-        protected,
-    );
-    let display = find_delimiter(
-        source,
-        start,
-        AlternateDelimiter::Display.opening(),
-        protected,
-    );
-
-    match (inline, display) {
-        (Some(inline), Some(display)) if inline < display => {
-            Some((inline, AlternateDelimiter::Inline))
-        }
-        (Some(_), Some(display)) => Some((display, AlternateDelimiter::Display)),
-        (Some(inline), None) => Some((inline, AlternateDelimiter::Inline)),
-        (None, Some(display)) => Some((display, AlternateDelimiter::Display)),
-        (None, None) => None,
-    }
+) -> Option<(usize, ExplicitDelimiter)> {
+    [
+        ExplicitDelimiter::Parentheses,
+        ExplicitDelimiter::Brackets,
+        ExplicitDelimiter::Dollars,
+    ]
+    .into_iter()
+    .filter_map(|delimiter| {
+        find_delimiter(source, start, delimiter.opening(), protected)
+            .map(|index| (index, delimiter))
+    })
+    .min_by_key(|(index, _)| *index)
 }
 
 fn find_delimiter(
@@ -515,6 +506,31 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn multiline_display_math_with_delimiter_whitespace_is_recognized() {
+        let source = r"$$ \frac{\partial}{\partial t}u(x,t)
+\alpha \frac{\partial^2}{\partial x^2}u(x,t) $$
+
+$$ \nabla\cdot\mathbf{E}=\frac{\rho}{\varepsilon_0}, \qquad
+\nabla\times\mathbf{B}=\mu_0\mathbf{J}+\mu_0\varepsilon_0\frac{\partial\mathbf{E}}{\partial t} $$";
+        let marked = mark_math(source);
+        let parsed = fragments(&marked).collect::<Vec<_>>();
+        let formulas = parsed
+            .iter()
+            .filter_map(|fragment| match fragment {
+                Fragment::Math { source, display } => Some((source, display)),
+                Fragment::Text(_) => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(formulas.len(), 2);
+        for (formula, display) in formulas {
+            assert!(*display);
+            render_math_svg(formula, true, Pixels(16.0))
+                .expect("multiline display formula should render");
+        }
     }
 
     #[test]
