@@ -121,7 +121,7 @@ pub const PLACEHOLDERS: [&str; 9] = [
     "Whooo’s curious?",
     "Perch a thought…",
     "Hoot me...",
-    "In my owl-pinion..."
+    "In my owl-pinion...",
 ];
 pub const IMAGE_TARGET_LABEL: &str = "[image capture]";
 

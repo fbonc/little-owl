@@ -45,17 +45,6 @@ impl Prompting {
         }
     }
 
-    pub fn update(&mut self, input: Input) {
-        match input {
-            Input::InputChanged(value) => self.prompt_value = value,
-            Input::InputFocusChanged(focused) => self.input_focused = focused,
-            Input::CaptureRegionRequested => self.capture_failed = false,
-            Input::CaptureFailed => self.capture_failed = true,
-            Input::ModelSelected(_) => {}
-            Input::SubmitRequested => {}
-        }
-    }
-
     pub fn prompt_value(&self) -> &str {
         &self.prompt_value
     }
@@ -69,7 +58,22 @@ impl Prompting {
     pub fn check_focus(&self) -> Task<Input> {
         iced::widget::operation::is_focused(self.input_id.clone()).map(Input::InputFocusChanged)
     }
+}
 
+impl Prompting {
+    pub fn update(&mut self, input: Input) {
+        match input {
+            Input::InputChanged(value) => self.prompt_value = value,
+            Input::InputFocusChanged(focused) => self.input_focused = focused,
+            Input::CaptureRegionRequested => self.capture_failed = false,
+            Input::CaptureFailed => self.capture_failed = true,
+            Input::ModelSelected(_) => {}
+            Input::SubmitRequested => {}
+        }
+    }
+}
+
+impl Prompting {
     pub fn view(
         &self,
         available_models: Vec<ModelSelection>,

@@ -45,10 +45,12 @@ impl Answering {
         *self = Self::default();
     }
 
+    #[cfg(test)]
     pub fn answer(&self) -> &str {
         &self.answer
     }
 
+    #[cfg(test)]
     pub fn is_done(&self) -> bool {
         self.done
     }
