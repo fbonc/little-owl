@@ -3,75 +3,75 @@ use iced::widget::{button, container, markdown, overlay::menu, pick_list, scroll
 use iced::{Background, Border, Color, Font, Shadow, Theme};
 
 pub const TEXT_COLOR: Color = Color {
-    r: 0.95,
-    g: 0.88,
-    b: 0.77,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 1.0,
 };
 pub const MUTED_COLOR: Color = Color {
-    r: 0.72,
-    g: 0.60,
-    b: 0.45,
-    a: 1.0,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
+    a: 0.70,
 };
 pub const DANGER_COLOR: Color = Color {
-    r: 0.90,
-    g: 0.44,
-    b: 0.38,
+    r: 0.941,
+    g: 0.490,
+    b: 0.435,
     a: 1.0,
 };
 pub const ACCENT_COLOR: Color = Color {
-    r: 0.93,
-    g: 0.70,
-    b: 0.29,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 1.0,
 };
 pub const BACKGROUND_COLOR: Color = Color {
-    r: 0.17,
-    g: 0.095,
-    b: 0.078,
+    r: 0.078,
+    g: 0.102,
+    b: 0.165,
     a: 1.0,
 };
 pub const INPUT_BACKGROUND: Color = Color {
-    r: 0.24,
-    g: 0.15,
-    b: 0.12,
+    r: 0.110,
+    g: 0.141,
+    b: 0.220,
     a: 1.0,
 };
 pub const MODEL_PICKER_BACKGROUND: Color = Color {
-    r: 0.20,
-    g: 0.115,
-    b: 0.095,
+    r: 0.094,
+    g: 0.125,
+    b: 0.200,
     a: 1.0,
 };
 pub const MODEL_MENU_HIGHLIGHT: Color = Color {
-    r: 0.34,
-    g: 0.22,
-    b: 0.17,
+    r: 0.165,
+    g: 0.208,
+    b: 0.314,
     a: 1.0,
 };
 pub const INPUT_BORDER_COLOR: Color = Color {
-    r: 0.72,
-    g: 0.60,
-    b: 0.45,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 0.30,
 };
 pub const SELECTION_COLOR: Color = Color {
-    r: 0.93,
-    g: 0.70,
-    b: 0.29,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 0.35,
 };
 pub const SCROLLER_COLOR: Color = Color {
-    r: 0.72,
-    g: 0.60,
-    b: 0.45,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 0.55,
 };
 pub const BORDER_COLOR: Color = Color {
-    r: 0.93,
-    g: 0.70,
-    b: 0.29,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
     a: 0.22,
 };
 pub const BORDER_STYLE: Border = Border {
@@ -89,7 +89,7 @@ pub const CARD_SPACING: f32 = 14.0;
 pub const CARD_PADDING: f32 = 22.0;
 pub const INPUT_PADDING: f32 = 12.0;
 pub const INPUT_RADIUS: f32 = 10.0;
-pub const LOGO_SIZE: f32 = 40.0;
+pub const LOGO_SIZE: f32 = 80.0;
 pub const HEADER_SPACING: f32 = 10.0;
 pub const HEADER_ACTION_SPACING: f32 = 4.0;
 pub const HEADER_ACTION_SIZE: f32 = 28.0;
@@ -135,10 +135,10 @@ pub const HINT_TEXT: &str = "Or just press Enter — I’ll figure it out";
 pub const HINT_SIZE: f32 = 12.5;
 pub const HINT_SPACING: f32 = 8.0;
 pub const HINT_COLOR: Color = Color {
-    r: 0.56,
-    g: 0.47,
-    b: 0.39,
-    a: 1.0,
+    r: 0.945,
+    g: 0.922,
+    b: 0.871,
+    a: 0.52,
 };
 
 pub fn input_box(_theme: &Theme, focused: bool) -> container::Style {
@@ -179,15 +179,15 @@ pub fn input(_theme: &Theme, _status: text_input::Status) -> text_input::Style {
 pub fn send_button(_theme: &Theme, status: button::Status) -> button::Style {
     let background = match status {
         button::Status::Hovered => Color {
-            r: 0.98,
-            g: 0.78,
-            b: 0.42,
+            r: 1.0,
+            g: 0.976,
+            b: 0.933,
             a: 1.0,
         },
         button::Status::Pressed => Color {
-            r: 0.84,
-            g: 0.62,
-            b: 0.24,
+            r: 0.839,
+            g: 0.812,
+            b: 0.761,
             a: 1.0,
         },
         _ => ACCENT_COLOR,

@@ -11,7 +11,7 @@ use super::style;
 use super::{Input, Overlay, Phase};
 
 static LOGO: LazyLock<image::Handle> = LazyLock::new(|| {
-    image::Handle::from_bytes(include_bytes!("../../../../assets/logo.png").as_slice())
+    image::Handle::from_bytes(include_bytes!("../../../../assets/banner.png").as_slice())
 });
 
 impl Overlay {
@@ -90,8 +90,7 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
 
     row![
         image(LOGO.clone())
-            .width(style::LOGO_SIZE)
-            .height(style::LOGO_SIZE),
+            .width(style::LOGO_SIZE),
         target,
         actions,
     ]

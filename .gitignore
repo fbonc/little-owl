@@ -3,3 +3,4 @@
 .worktrees/
 *.kra~
 *.kra-autosave.kra
+*.af~lock~
