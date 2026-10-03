@@ -3,7 +3,7 @@ use std::sync::Arc;
 use base64::Engine;
 use eventsource_stream::Eventsource;
 use futures_util::{StreamExt, stream};
-use owl_types::{ImageCapture, Target};
+use minim_types::{ImageCapture, Target};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -250,7 +250,7 @@ fn api_error(status: reqwest::StatusCode, body: &str) -> ProviderError {
 #[cfg(test)]
 mod tests {
     use futures_util::StreamExt;
-    use owl_types::{ContextCapture, ImageCapture, Target, TextCapture, TextCaptureMethod};
+    use minim_types::{ContextCapture, ImageCapture, Target, TextCapture, TextCaptureMethod};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 

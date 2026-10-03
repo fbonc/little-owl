@@ -86,8 +86,8 @@ impl Overlay {
 
 #[cfg(test)]
 mod tests {
-    use owl_provider::{ModelSelection, ProviderId};
-    use owl_types::{Target, TextCapture, TextCaptureMethod};
+    use minim_provider::{ModelSelection, ProviderId};
+    use minim_types::{Target, TextCapture, TextCaptureMethod};
 
     use super::*;
 

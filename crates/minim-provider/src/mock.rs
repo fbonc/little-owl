@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use futures_util::{StreamExt, stream};
-use owl_types::Target;
+use minim_types::Target;
 
 use crate::{Provider, ProviderOutput, ProviderRequest, ProviderStream};
 
@@ -114,7 +114,7 @@ mod tests {
 
     use futures_executor::block_on;
     use futures_util::StreamExt;
-    use owl_types::{ImageCapture, Target};
+    use minim_types::{ImageCapture, Target};
 
     use super::*;
 

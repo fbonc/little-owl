@@ -2,7 +2,7 @@ use iced::widget::{
     Id, button, column, container, pick_list, row, space, stack, svg, text, text_input,
 };
 use iced::{Center, Element, Fill, Task};
-use owl_provider::ModelSelection;
+use minim_provider::ModelSelection;
 
 use super::style;
 

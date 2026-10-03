@@ -5,7 +5,7 @@ use super::error::ProviderError;
 use futures_core::Stream;
 use serde::{Deserialize, Serialize};
 
-use owl_types::{ContextCapture, Target};
+use minim_types::{ContextCapture, Target};
 
 #[derive(Debug, Clone)]
 pub struct ProviderRequest {

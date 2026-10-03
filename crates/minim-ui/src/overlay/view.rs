@@ -4,8 +4,8 @@ use iced::advanced::text::Wrapping;
 use iced::widget::{button, column, container, image, row, space, svg, text};
 use iced::{Center, Element, Fill};
 
-use owl_provider::ModelSelection;
-use owl_types::Target;
+use minim_provider::ModelSelection;
+use minim_types::Target;
 
 use super::style;
 use super::{Input, Overlay, Phase};
@@ -88,15 +88,10 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
 
     actions = actions.push(header_button("×", Input::DismissRequested));
 
-    row![
-        image(LOGO.clone())
-            .width(style::LOGO_SIZE),
-        target,
-        actions,
-    ]
-    .spacing(style::HEADER_SPACING)
-    .align_y(Center)
-    .into()
+    row![image(LOGO.clone()).width(style::LOGO_SIZE), target, actions,]
+        .spacing(style::HEADER_SPACING)
+        .align_y(Center)
+        .into()
 }
 
 fn header_button(label: &'static str, input: Input) -> Element<'static, Input> {

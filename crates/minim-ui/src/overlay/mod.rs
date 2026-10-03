@@ -1,6 +1,6 @@
 use iced::{Subscription, Task};
-use owl_provider::ModelSelection;
-use owl_types::Target;
+use minim_provider::ModelSelection;
+use minim_types::Target;
 
 pub mod answering;
 pub mod prompting;
