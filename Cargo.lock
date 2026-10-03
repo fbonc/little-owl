@@ -2860,6 +2860,104 @@ dependencies = [
 ]
 
 [[package]]
+name = "minim-app"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "minim-config",
+ "minim-core",
+ "minim-provider",
+ "minim-types",
+ "minim-ui",
+ "objc2 0.6.4",
+ "objc2-app-kit 0.3.2",
+]
+
+[[package]]
+name = "minim-capture"
+version = "0.1.0"
+dependencies = [
+ "arboard",
+ "axuielement",
+ "minim-types",
+ "objc2 0.6.4",
+ "objc2-app-kit 0.3.2",
+ "objc2-core-graphics",
+ "objc2-foundation 0.3.2",
+ "tempfile",
+ "thiserror 2.0.20",
+ "xcap",
+]
+
+[[package]]
+name = "minim-config"
+version = "0.1.0"
+dependencies = [
+ "directories",
+ "minim-provider",
+ "security-framework",
+ "security-framework-sys",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.20",
+ "toml",
+]
+
+[[package]]
+name = "minim-core"
+version = "0.1.0"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "minim-capture",
+ "minim-hotkey",
+ "minim-provider",
+ "minim-types",
+ "tokio",
+]
+
+[[package]]
+name = "minim-hotkey"
+version = "0.1.0"
+dependencies = [
+ "global-hotkey",
+]
+
+[[package]]
+name = "minim-provider"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "eventsource-stream",
+ "futures-core",
+ "futures-executor",
+ "futures-util",
+ "minim-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "minim-types"
+version = "0.1.0"
+
+[[package]]
+name = "minim-ui"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "minim-provider",
+ "minim-types",
+ "pulldown-cmark",
+ "ratex-layout",
+ "ratex-parser",
+ "ratex-svg",
+ "ratex-types",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3643,104 +3741,6 @@ checksum = "9aa2b01e1d916879f73a53d01d1d6cee68adbb31d6d9177a8cfce093cced1d50"
 dependencies = [
  "futures-core",
  "pin-project-lite",
-]
-
-[[package]]
-name = "owl-app"
-version = "0.1.0"
-dependencies = [
- "iced",
- "objc2 0.6.4",
- "objc2-app-kit 0.3.2",
- "owl-config",
- "owl-core",
- "owl-provider",
- "owl-types",
- "owl-ui",
-]
-
-[[package]]
-name = "owl-capture"
-version = "0.1.0"
-dependencies = [
- "arboard",
- "axuielement",
- "objc2 0.6.4",
- "objc2-app-kit 0.3.2",
- "objc2-core-graphics",
- "objc2-foundation 0.3.2",
- "owl-types",
- "tempfile",
- "thiserror 2.0.20",
- "xcap",
-]
-
-[[package]]
-name = "owl-config"
-version = "0.1.0"
-dependencies = [
- "directories",
- "owl-provider",
- "security-framework",
- "security-framework-sys",
- "serde",
- "tempfile",
- "thiserror 2.0.20",
- "toml",
-]
-
-[[package]]
-name = "owl-core"
-version = "0.1.0"
-dependencies = [
- "futures-channel",
- "futures-util",
- "owl-capture",
- "owl-hotkey",
- "owl-provider",
- "owl-types",
- "tokio",
-]
-
-[[package]]
-name = "owl-hotkey"
-version = "0.1.0"
-dependencies = [
- "global-hotkey",
-]
-
-[[package]]
-name = "owl-provider"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "eventsource-stream",
- "futures-core",
- "futures-executor",
- "futures-util",
- "owl-types",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "owl-types"
-version = "0.1.0"
-
-[[package]]
-name = "owl-ui"
-version = "0.1.0"
-dependencies = [
- "iced",
- "owl-provider",
- "owl-types",
- "pulldown-cmark",
- "ratex-layout",
- "ratex-parser",
- "ratex-svg",
- "ratex-types",
 ]
 
 [[package]]

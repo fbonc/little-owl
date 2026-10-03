@@ -28,6 +28,6 @@ For example, highlighting an unfamiliar term in a PDF should give the model the 
 
 ## Architecture
 
-This is a Rust workspace with an Iced desktop UI. `owl-hotkey` starts a lookup; `owl-core` coordinates capture and the answer request; `owl-capture` owns the macOS Accessibility, clipboard, screenshot, and provenance code; and `owl-provider` defines the streaming model interface. `owl-app` hosts the `owl-ui` overlay, while `owl-types` holds the data shared between crates.
+This is a Rust workspace with an Iced desktop UI. `minim-hotkey` starts a lookup; `minim-core` coordinates capture and the answer request; `minim-capture` owns the macOS Accessibility, clipboard, screenshot, and provenance code; and `minim-provider` defines the streaming model interface. `minim-app` hosts the `minim-ui` overlay, while `minim-types` holds the data shared between crates.
 
 The capture and overlay flow is implemented. Model integration and source-linked answer history are the next pieces of the intended app.
