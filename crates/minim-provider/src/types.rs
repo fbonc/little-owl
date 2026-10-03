@@ -1,8 +1,10 @@
 use std::fmt;
 use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 
 use super::error::ProviderError;
 use futures_core::Stream;
+use futures_util::future::{AbortHandle, AbortRegistration};
 use serde::{Deserialize, Serialize};
 
 use minim_types::{ContextCapture, Target};
@@ -67,6 +69,41 @@ pub trait Provider: Send + Sync {
     fn available_models(&self) -> Vec<String>;
 
     fn stream(&self, model: &str, request: ProviderRequest) -> ProviderStream;
+
+    fn abort_request(&self);
+}
+
+#[derive(Debug, Clone, Default)]
+pub(crate) struct RequestAbortController {
+    handle: Arc<Mutex<Option<AbortHandle>>>,
+}
+
+impl RequestAbortController {
+    pub(crate) fn register(&self) -> AbortRegistration {
+        let (handle, registration) = AbortHandle::new_pair();
+        let previous = self
+            .handle
+            .lock()
+            .expect("provider request abort mutex poisoned")
+            .replace(handle);
+
+        if let Some(previous) = previous {
+            previous.abort();
+        }
+
+        registration
+    }
+
+    pub(crate) fn abort(&self) {
+        if let Some(handle) = self
+            .handle
+            .lock()
+            .expect("provider request abort mutex poisoned")
+            .take()
+        {
+            handle.abort();
+        }
+    }
 }
 
 #[cfg(test)]

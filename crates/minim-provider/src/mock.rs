@@ -1,8 +1,10 @@
 use std::time::Duration;
 
+use futures_util::future::Abortable;
 use futures_util::{StreamExt, stream};
 use minim_types::Target;
 
+use crate::types::RequestAbortController;
 use crate::{Provider, ProviderOutput, ProviderRequest, ProviderStream};
 
 const DEFAULT_ANSWER: &str = r"
@@ -55,11 +57,15 @@ In short:
 #[derive(Debug, Clone)]
 pub struct MockProvider {
     chunk_delay: Duration,
+    request_abort: RequestAbortController,
 }
 
 impl MockProvider {
     pub fn new(chunk_delay: Duration) -> Self {
-        Self { chunk_delay }
+        Self {
+            chunk_delay,
+            request_abort: RequestAbortController::default(),
+        }
     }
 
     fn answer(request: &ProviderRequest) -> String {
@@ -96,15 +102,20 @@ impl Provider for MockProvider {
             .map(|chunk| Ok(ProviderOutput::TextDelta(chunk.to_owned())))
             .collect::<Vec<_>>();
 
-        stream::iter(chunks)
+        let stream = stream::iter(chunks)
             .enumerate()
             .then(move |(index, output)| async move {
                 if index > 0 && !delay.is_zero() {
                     tokio::time::sleep(delay).await;
                 }
                 output
-            })
-            .boxed()
+            });
+
+        Abortable::new(stream, self.request_abort.register()).boxed()
+    }
+
+    fn abort_request(&self) {
+        self.request_abort.abort();
     }
 }
 
@@ -140,5 +151,24 @@ mod tests {
 
         assert!(reply.contains("Image target captured"));
         assert!(reply.contains("describe this"));
+    }
+
+    #[tokio::test]
+    async fn aborts_an_active_request() {
+        let provider = MockProvider::new(Duration::from_secs(60));
+        let request = ProviderRequest {
+            prompt: Some("describe this".into()),
+            target: None,
+            context: None,
+        };
+        let mut stream = provider.stream("mock", request);
+
+        assert!(stream.next().await.is_some());
+        provider.abort_request();
+
+        let output = tokio::time::timeout(Duration::from_secs(1), stream.next())
+            .await
+            .expect("aborted request should stop promptly");
+        assert!(output.is_none());
     }
 }

@@ -209,6 +209,8 @@ mod tests {
                 .push(model.to_owned());
             stream::empty().boxed()
         }
+
+        fn abort_request(&self) {}
     }
 
     impl Capturer for StubCapturer {

@@ -2,11 +2,13 @@ use std::sync::Arc;
 
 use base64::Engine;
 use eventsource_stream::Eventsource;
+use futures_util::future::Abortable;
 use futures_util::{StreamExt, stream};
 use minim_types::{ImageCapture, Target};
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::types::RequestAbortController;
 use crate::{Provider, ProviderError, ProviderOutput, ProviderRequest, ProviderStream};
 
 const DEFAULT_BASE_URL: &str = "https://api.openai.com";
@@ -34,6 +36,7 @@ pub struct OpenAiProvider {
     api_key: Arc<str>,
     models: Vec<String>,
     endpoint: Arc<str>,
+    request_abort: RequestAbortController,
 }
 
 impl OpenAiProvider {
@@ -45,6 +48,7 @@ impl OpenAiProvider {
             api_key: config.api_key.into(),
             models: config.models,
             endpoint: endpoint.into(),
+            request_abort: RequestAbortController::default(),
         }
     }
 
@@ -96,14 +100,19 @@ impl Provider for OpenAiProvider {
         let endpoint = Arc::clone(&self.endpoint);
         let request = ResponsesRequest::new(model, request);
 
-        stream::once(async move {
+        let stream = stream::once(async move {
             match Self::open_stream(client, api_key, endpoint, request).await {
                 Ok(stream) => stream,
                 Err(error) => stream::once(async move { Err(error) }).boxed(),
             }
         })
-        .flatten()
-        .boxed()
+        .flatten();
+
+        Abortable::new(stream, self.request_abort.register()).boxed()
+    }
+
+    fn abort_request(&self) {
+        self.request_abort.abort();
     }
 }
 
@@ -147,10 +156,7 @@ impl ResponsesRequest {
         }
 
         content.push(InputContent::Text {
-            text: format!(
-                "Question:\n{}",
-                request.prompt.as_deref().unwrap()
-            ),
+            text: format!("Question:\n{}", request.prompt.as_deref().unwrap()),
         });
 
         Self {
@@ -248,6 +254,8 @@ fn api_error(status: reqwest::StatusCode, body: &str) -> ProviderError {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use futures_util::StreamExt;
     use minim_types::{ContextCapture, ImageCapture, Target, TextCapture, TextCaptureMethod};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -393,6 +401,33 @@ mod tests {
             error,
             ProviderError::new("OpenAI API request failed (401 Unauthorized): invalid API key")
         );
+    }
+
+    #[tokio::test]
+    async fn aborts_an_active_request() {
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind test server");
+        let address = listener.local_addr().expect("test server address");
+        let provider = OpenAiProvider::new(OpenAiConfig {
+            api_key: "test-key".into(),
+            models: vec!["gpt-test".into()],
+            base_url: format!("http://{address}"),
+        });
+        let mut stream = provider.stream("gpt-test", request(None));
+        let next_output = tokio::spawn(async move { stream.next().await });
+        let _connection = tokio::time::timeout(Duration::from_secs(1), listener.accept())
+            .await
+            .expect("request should reach test server")
+            .expect("accept request");
+
+        provider.abort_request();
+
+        let output = tokio::time::timeout(Duration::from_secs(1), next_output)
+            .await
+            .expect("aborted request should stop promptly")
+            .expect("stream task");
+        assert!(output.is_none());
     }
 
     async fn serve_once(
