@@ -1,20 +1,22 @@
 <p align="center">
-  <img width="300" alt="banner" src="https://github.com/user-attachments/assets/9c0fcdde-7c4c-4e01-92ba-699e03f275c8" />
+  <img width="350" alt="banner" src="https://github.com/user-attachments/assets/2cf57835-4e97-41b8-bfac-84c4e3675673" />
 </p>
+
+```Previously "Little Owl"```
 
 An app for asking questions about what you are reading or viewing, right when a question comes to mind.
 
-A linear chat thread is fundamentally a flawed medium for atomic questions. Little Owl is being built to keep each answer connected to its source, so useful explanations do not disappear into a chat thread.
+A linear chat thread is fundamentally a flawed medium for atomic questions. Minim is being built to keep each answer connected to its source, so useful explanations do not disappear into a chat thread.
 
 ## Why
 
 Copying something into a chat loses the surrounding context. Switching apps interrupts the question, and small, unrelated answers get buried in a long conversation. This is especially awkward when reading a paper or another document you cannot edit: a term needs a quick explanation, but asking about it takes you away from the page.
 
-Little Owl aims to eliminate the friction from having a question to asking it, and then organize the answers by where those questions came from.
+Minim aims to eliminate the friction from having a question to asking it, and then organize the answers by where those questions came from.
 
 ## How it works
 
-1. Highlight text and press the global hotkey. Little Owl captures the selection, nearby context, and available source details such as the app, window, or document. You can also select a screen region as the subject of a question.
+1. Highlight text and press the global hotkey. Mininm captures the selection, nearby context, and available source details such as the app, window, or document. You can also select a screen region as the subject of a question.
 2. Ask in the small overlay without leaving the source. The answer appears there as it streams.
 3. The planned history will save each answer as a separate Markdown note with its provenance, so questions from the same document can be found together.
 
