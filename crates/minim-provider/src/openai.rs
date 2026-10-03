@@ -10,7 +10,6 @@ use serde_json::Value;
 use crate::{Provider, ProviderError, ProviderOutput, ProviderRequest, ProviderStream};
 
 const DEFAULT_BASE_URL: &str = "https://api.openai.com";
-const DEFAULT_PROMPT: &str = "Explain the provided target or context.";
 use super::instructions::INSTRUCTIONS;
 
 pub struct OpenAiConfig {
@@ -150,7 +149,7 @@ impl ResponsesRequest {
         content.push(InputContent::Text {
             text: format!(
                 "Question:\n{}",
-                request.prompt.as_deref().unwrap_or(DEFAULT_PROMPT)
+                request.prompt.as_deref().unwrap()
             ),
         });
 
