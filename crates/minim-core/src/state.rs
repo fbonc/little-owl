@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use futures_util::future::{AbortHandle, AbortRegistration};
-use minim_provider::ProviderRequest;
+use minim_provider::{Provider, ProviderRequest};
 use minim_types::{ContextCapture, ImageCapture, Provenance, Target};
 
 use crate::Output;
@@ -12,12 +14,13 @@ pub struct Capture {
     pub elapsed_ms: u32,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(crate) struct State {
     pub(crate) capture_id: u64,
     current_capture: Option<Capture>,
     provider_request_id: u64,
     provider_abort: Option<AbortHandle>,
+    active_provider: Option<Arc<dyn Provider>>,
 }
 
 impl State {
@@ -27,7 +30,7 @@ impl State {
     }
 
     pub(crate) fn start_capture(&mut self) -> u64 {
-        self.cancel_provider_request();
+        self.abort_provider_request();
         self.capture_id = self.capture_id.wrapping_add(1);
         self.current_capture = None;
         self.capture_id
@@ -61,8 +64,9 @@ impl State {
     pub(crate) fn start_provider_request(
         &mut self,
         prompt: Option<String>,
+        provider: Option<Arc<dyn Provider>>,
     ) -> (ProviderRequest, u64, AbortRegistration) {
-        self.cancel_provider_request();
+        self.abort_provider_request();
         let request = ProviderRequest {
             prompt,
             target: self
@@ -76,13 +80,17 @@ impl State {
         };
         let (abort, registration) = AbortHandle::new_pair();
         self.provider_abort = Some(abort);
+        self.active_provider = provider;
         (request, self.provider_request_id, registration)
     }
 
-    fn cancel_provider_request(&mut self) {
+    pub(crate) fn abort_provider_request(&mut self) {
         self.provider_request_id = self.provider_request_id.wrapping_add(1);
         if let Some(abort) = self.provider_abort.take() {
             abort.abort();
+        }
+        if let Some(provider) = self.active_provider.take() {
+            provider.abort_request();
         }
     }
 
@@ -93,6 +101,7 @@ impl State {
 
         if matches!(output, Output::AnswerCompleted | Output::RequestFailed(_)) {
             self.provider_abort = None;
+            self.active_provider = None;
         }
 
         true
@@ -141,7 +150,7 @@ mod tests {
             },
         );
 
-        let (request, _, _) = state.start_provider_request(Some("explain this".into()));
+        let (request, _, _) = state.start_provider_request(Some("explain this".into()), None);
 
         assert_eq!(request.prompt.as_deref(), Some("explain this"));
         assert!(matches!(
@@ -173,7 +182,8 @@ mod tests {
         );
 
         state.remove_target();
-        let (request, _, _) = state.start_provider_request(Some("explain the context".into()));
+        let (request, _, _) =
+            state.start_provider_request(Some("explain the context".into()), None);
 
         assert!(request.target.is_none());
         assert_eq!(request.prompt.as_deref(), Some("explain the context"));
@@ -246,7 +256,7 @@ mod tests {
         );
 
         assert!(state.apply_region(capture_id, image()));
-        let (request, _, _) = state.start_provider_request(None);
+        let (request, _, _) = state.start_provider_request(None, None);
 
         assert!(matches!(request.target, Some(Target::Image(_))));
         assert!(matches!(
@@ -258,10 +268,10 @@ mod tests {
     #[test]
     fn newer_provider_request_aborts_the_previous_request() {
         let mut state = State::default();
-        let (_, first_id, first_registration) = state.start_provider_request(None);
+        let (_, first_id, first_registration) = state.start_provider_request(None, None);
         let first_abort = first_registration.handle();
 
-        let (_, second_id, _) = state.start_provider_request(None);
+        let (_, second_id, _) = state.start_provider_request(None, None);
 
         assert!(first_abort.is_aborted());
         assert_ne!(first_id, second_id);
@@ -272,7 +282,7 @@ mod tests {
     #[test]
     fn beginning_a_capture_aborts_the_active_provider_request() {
         let mut state = State::default();
-        let (_, request_id, registration) = state.start_provider_request(None);
+        let (_, request_id, registration) = state.start_provider_request(None, None);
         let abort = registration.handle();
 
         state.start_capture();
@@ -284,7 +294,7 @@ mod tests {
     #[test]
     fn terminal_provider_output_closes_the_active_request() {
         let mut state = State::default();
-        let (_, request_id, _) = state.start_provider_request(None);
+        let (_, request_id, _) = state.start_provider_request(None, None);
 
         assert!(state.accept_provider_output(request_id, &Output::AnswerCompleted));
         assert!(!state.accept_provider_output(request_id, &Output::AnswerChunk("late".into())));

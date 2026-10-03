@@ -59,6 +59,10 @@ impl Answering {
         self.error.as_deref()
     }
 
+    pub(super) fn is_streaming(&self) -> bool {
+        !self.done && self.error.is_none()
+    }
+
     pub fn subscription(&self) -> Subscription<Input> {
         if self.is_waiting() {
             iced::time::every(Duration::from_millis(80)).map(|_| Input::LoadingTick)
@@ -114,7 +118,7 @@ impl Answering {
     }
 
     fn is_waiting(&self) -> bool {
-        self.answer.is_empty() && !self.done && self.error.is_none()
+        self.answer.is_empty() && self.is_streaming()
     }
 }
 

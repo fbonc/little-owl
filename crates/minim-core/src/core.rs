@@ -31,6 +31,10 @@ impl Core {
     pub(crate) fn handle_input(self: &Arc<Self>, input: Input) -> BoxStream<'static, Output> {
         match input {
             Input::Submit { prompt, model } => self.start_provider_stream(prompt, model),
+            Input::AbortProviderRequest => {
+                self.abort_provider_request();
+                stream::empty().boxed()
+            }
             Input::RemoveTarget => {
                 self.remove_target();
                 stream::empty().boxed()
@@ -120,12 +124,13 @@ impl Core {
         prompt: Option<String>,
         model: ModelSelection,
     ) -> BoxStream<'static, Output> {
+        let provider = self.providers.resolve(&model);
         let (request, request_id, abort_registration) = self
             .state
             .lock()
             .expect("core state mutex poisoned")
-            .start_provider_request(prompt);
-        let provider_stream = match self.providers.resolve(&model) {
+            .start_provider_request(prompt, provider.clone());
+        let provider_stream = match provider {
             Some(provider) => provider.stream(&model.model, request),
             None => stream::once(async move {
                 Err(ProviderError::new(format!(
@@ -164,6 +169,13 @@ impl Core {
             .boxed()
     }
 
+    fn abort_provider_request(&self) {
+        self.state
+            .lock()
+            .expect("core state mutex poisoned")
+            .abort_provider_request();
+    }
+
     fn accept_provider_output(&self, request_id: u64, output: &Output) -> bool {
         self.state
             .lock()
@@ -195,6 +207,7 @@ mod tests {
 
     struct RecordingProvider {
         requested_models: Mutex<Vec<String>>,
+        aborted: AtomicBool,
     }
 
     impl Provider for RecordingProvider {
@@ -210,7 +223,9 @@ mod tests {
             stream::empty().boxed()
         }
 
-        fn abort_request(&self) {}
+        fn abort_request(&self) {
+            self.aborted.store(true, Ordering::SeqCst);
+        }
     }
 
     impl Capturer for StubCapturer {
@@ -351,6 +366,7 @@ mod tests {
         let providers = ProviderRegistry::new();
         let provider = Arc::new(RecordingProvider {
             requested_models: Mutex::new(Vec::new()),
+            aborted: AtomicBool::new(false),
         });
         let provider_id = ProviderId::new("recording");
         providers.add_provider(provider_id.clone(), provider.clone());
@@ -368,5 +384,25 @@ mod tests {
                 .expect("recorded models mutex poisoned"),
             vec!["second"]
         );
+    }
+
+    #[test]
+    fn aborting_stops_the_active_provider_request() {
+        let providers = ProviderRegistry::new();
+        let provider = Arc::new(RecordingProvider {
+            requested_models: Mutex::new(Vec::new()),
+            aborted: AtomicBool::new(false),
+        });
+        let provider_id = ProviderId::new("recording");
+        providers.add_provider(provider_id.clone(), provider.clone());
+        let core = Arc::new(Core::new(providers, Arc::new(StubCapturer::default())));
+        let _outputs = core.start_provider_stream(
+            Some("explain".into()),
+            ModelSelection::new(provider_id, "first"),
+        );
+
+        let _outputs = core.handle_input(Input::AbortProviderRequest);
+
+        assert!(provider.aborted.load(Ordering::SeqCst));
     }
 }

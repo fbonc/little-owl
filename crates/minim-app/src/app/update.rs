@@ -107,6 +107,15 @@ pub(super) fn update(state: &mut App, input: Input) -> Task<Input> {
                 iced_window::set_mode(id, iced_window::Mode::Hidden)
                     .chain(Task::done(Input::BeginRegionSelection))
             }
+            Some(OverlayOutput::ProviderRequestAbortRequested) => {
+                if let Err(error) = state
+                    .to_core
+                    .try_send(minim_core::Input::AbortProviderRequest)
+                {
+                    eprintln!("failed to abort provider request: {error}");
+                }
+                Task::none()
+            }
             Some(OverlayOutput::LinkClicked(uri)) => {
                 println!("link clicked: {uri}");
                 Task::none()

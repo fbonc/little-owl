@@ -67,6 +67,13 @@ impl Overlay {
                 self.answering.fail(error);
                 None
             }
+            Input::ProviderRequestAbortRequested
+                if self.phase == Phase::Answering && self.answering.is_streaming() =>
+            {
+                self.answering.finish();
+                Some(Output::ProviderRequestAbortRequested)
+            }
+            Input::ProviderRequestAbortRequested => None,
             Input::BackRequested => {
                 self.phase = Phase::Prompting;
                 Some(Output::PhaseChanged(Phase::Prompting))
@@ -292,6 +299,25 @@ mod tests {
 
         assert_eq!(overlay.answering.answer(), "uncertainty");
         assert!(overlay.answering.is_done());
+    }
+
+    #[test]
+    fn aborting_finishes_the_partial_answer_and_notifies_the_host() {
+        let mut overlay = Overlay::new();
+        overlay.phase = Phase::Answering;
+        overlay.update(Input::AppendAnswer("partial".into()));
+
+        assert_eq!(
+            overlay.update(Input::ProviderRequestAbortRequested),
+            Some(Output::ProviderRequestAbortRequested)
+        );
+        assert_eq!(overlay.answering.answer(), "partial");
+        assert!(overlay.answering.is_done());
+        assert!(
+            overlay
+                .update(Input::ProviderRequestAbortRequested)
+                .is_none()
+        );
     }
 
     #[test]

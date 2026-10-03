@@ -83,6 +83,9 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
     let mut actions = row![].spacing(style::HEADER_ACTION_SPACING);
 
     if overlay.phase == Phase::Answering {
+        if overlay.answering.is_streaming() {
+            actions = actions.push(abort_button());
+        }
         actions = actions.push(header_button("←", Input::BackRequested));
     }
 
@@ -91,6 +94,22 @@ fn header(overlay: &Overlay) -> Element<'_, Input> {
     row![image(LOGO.clone()).width(style::LOGO_SIZE), target, actions,]
         .spacing(style::HEADER_SPACING)
         .align_y(Center)
+        .into()
+}
+
+fn abort_button() -> Element<'static, Input> {
+    let icon = svg(svg::Handle::from_memory(
+        include_bytes!("../../../../assets/stop.svg").as_slice(),
+    ))
+    .width(style::ABORT_ICON_SIZE)
+    .height(style::ABORT_ICON_SIZE);
+
+    button(container(icon).center(Fill))
+        .on_press(Input::ProviderRequestAbortRequested)
+        .width(style::HEADER_ACTION_SIZE)
+        .height(style::HEADER_ACTION_SIZE)
+        .padding(0)
+        .style(style::header_button)
         .into()
 }
 

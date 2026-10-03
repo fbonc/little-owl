@@ -21,6 +21,7 @@ pub enum Input {
         prompt: Option<String>,
         model: ModelSelection,
     },
+    AbortProviderRequest,
     RemoveTarget,
     SelectRegion,
 }
@@ -42,7 +43,9 @@ pub fn start(providers: ProviderRegistry) -> (Sender, impl Stream<Item = Output>
     let (sender, inputs) = mpsc::channel(1);
     let core = Arc::new(Core::new(providers, Arc::from(new_capturer())));
     let hotkey_outputs = hotkey::outputs(Arc::clone(&core));
-    let responses = inputs.flat_map(move |input| core.handle_input(input));
+    let responses = inputs
+        .map(move |input| core.handle_input(input))
+        .flatten_unordered(None);
 
     (sender, stream::select(hotkey_outputs, responses))
 }
